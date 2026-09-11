@@ -56,6 +56,44 @@ export const ServiceStatus = {
 
 export type ServiceStatus = (typeof ServiceStatus)[keyof typeof ServiceStatus];
 
+// ─── Dentist ────────────────────────────────────────────────
+
+export const DentistStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED',
+} as const;
+
+export type DentistStatus = (typeof DentistStatus)[keyof typeof DentistStatus];
+
+// ─── Location ───────────────────────────────────────────────
+
+export const LocationStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type LocationStatus = (typeof LocationStatus)[keyof typeof LocationStatus];
+
+// ─── Resource ───────────────────────────────────────────────
+
+export const ResourceType = {
+  CHAIR: 'CHAIR',
+  ROOM: 'ROOM',
+  EQUIPMENT: 'EQUIPMENT',
+  OTHER: 'OTHER',
+} as const;
+
+export type ResourceType = (typeof ResourceType)[keyof typeof ResourceType];
+
+export const ResourceStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  MAINTENANCE: 'MAINTENANCE',
+} as const;
+
+export type ResourceStatus = (typeof ResourceStatus)[keyof typeof ResourceStatus];
+
 // ─── Appointment ────────────────────────────────────────────
 
 export const AppointmentStatus = {
