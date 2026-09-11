@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Clinical Cloud
 
-## Getting Started
+Multi-tenant SaaS platform for dental clinics.
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Clinical Cloud provides operational workflow management for dental clinics including:
+- Organization and user management
+- Patient management
+- Appointment scheduling with conflict protection
+- Dentist availability management
+- Waitlist and cancelled-slot recovery
+- WhatsApp communication
+- Conversational AI (DeepSeek)
+- Operational dashboard
+- Audit logging
+
+## Architecture
+
+**Modular monolith** — clear module boundaries without microservice complexity.
+
+See [Architecture Decisions](docs/architecture.md) for detailed ADRs.
+
+## Tech Stack
+
+| Layer          | Technology                        |
+| -------------- | --------------------------------- |
+| Frontend       | Next.js, TypeScript, Tailwind CSS |
+| UI Components  | shadcn/ui                         |
+| Backend        | AWS Lambda, Node.js, TypeScript   |
+| Database       | PostgreSQL (Amazon RDS)           |
+| Auth           | Amazon Cognito, JWT               |
+| Messaging      | Amazon SQS, EventBridge           |
+| Communication  | Meta WhatsApp Cloud API           |
+| AI             | DeepSeek                          |
+| Infrastructure | AWS, Terraform                    |
+| Observability  | Amazon CloudWatch                 |
+
+## Project Structure
+
+```
+src/
+├── app/                  # Next.js App Router (pages, layouts, routes)
+├── modules/              # Domain modules (modular monolith)
+│   ├── organizations/    # Multi-tenant org management
+│   ├── users/            # User accounts and roles
+│   ├── patients/         # Patient contact information
+│   ├── services/         # Dental service catalog
+│   └── appointments/     # Appointment lifecycle
+├── shared/               # Cross-cutting concerns
+│   ├── auth/             # Authentication utilities
+│   ├── database/         # Database connection and migrations
+│   ├── errors/           # Custom error classes
+│   ├── middleware/       # Request middleware
+│   ├── types/            # Shared types and constants
+│   ├── utils/            # General utilities
+│   └── validation/       # Shared validation schemas
+├── infrastructure/       # External service adapters
+│   ├── aws/              # AWS SDK clients
+│   ├── whatsapp/         # WhatsApp Cloud API adapter
+│   └── ai/               # AI provider adapters
+├── components/           # React UI components
+│   ├── ui/               # shadcn/ui components
+│   ├── forms/            # Reusable form components
+│   └── layout/           # Layout components
+└── lib/                  # Frontend utilities
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Additional modules (dentists, locations, resources, availability, waitlist, recovery, whatsapp, ai, audit, dashboard, jobs) will be added incrementally in later phases.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
 
-## Learn More
+- Node.js 20.x
+- npm 10.x
 
-To learn more about Next.js, take a look at the following resources:
+### Setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Install dependencies
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Start development server
+npm run dev
 
-## Deploy on Vercel
+# Lint
+npm run lint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Type check
+npx tsc --noEmit
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Build
+npm run build
+```
+
+### Environment
+
+Copy `.env.example` to `.env.local` and fill in the values:
+
+```bash
+cp .env.example .env.local
+```
+
+## Git Convention
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add patient domain model
+fix: prevent overlapping appointments
+docs: update architecture decisions
+chore: update dependencies
+refactor: extract validation logic
+test: add appointment conflict tests
+```
+
+### Branch Strategy
+
+- `main` — production-ready
+- `develop` — integration branch
+- `feature/*` — new features
+- `fix/*` — bug fixes
+
+## Development Phases
+
+1. ✅ **Repository** — Next.js, TypeScript, ESLint, project structure
+2. ⬜ **Core Domain** — organizations, users, patients, dentists, locations, resources, services
+3. ⬜ **Appointments** — creation, validation, conflict protection, events, availability
+4. ⬜ **Waitlist & Recovery** — waitlist, recovery offers, deterministic matching
+5. ⬜ **AWS Backend** — API Gateway, Lambda, RDS, Cognito, Secrets Manager
+6. ⬜ **WhatsApp** — Meta integration, webhooks, messages, templates
+7. ⬜ **DeepSeek** — AI service, prompts, tools, structured output
+8. ⬜ **Async Processing** — SQS, EventBridge, Lambda workers
+9. ⬜ **Dashboard** — operational KPIs, recovery metrics
+10. ⬜ **DevOps** — Docker, Terraform, CI/CD, observability
+11. ⬜ **Production Hardening** — security review, monitoring, backups
+
+## License
+
+Proprietary. All rights reserved.
