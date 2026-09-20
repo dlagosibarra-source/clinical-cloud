@@ -8,6 +8,13 @@
       "when": 1789144838616,
       "tag": "0000_charming_deathbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": 7,
+      "when": 1789798478970,
+      "tag": "0001_updated_at_triggers",
+      "breakpoints": false
     }
   ]
 }

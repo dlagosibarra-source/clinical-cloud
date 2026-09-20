@@ -111,3 +111,29 @@ This document records key architectural decisions for the project.
 - New channels can be added without restructuring
 - WhatsApp-specific logic stays in the adapter
 - Core business logic remains channel-agnostic
+
+---
+
+## ADR-007: Appointment Slot Reuse After No-Show
+
+**Status:** Accepted
+
+**Context:** The double-booking exclusion constraint excludes appointments with status `CANCELLED` and `RESCHEDULED` so their time slots become reusable. A decision is required for `NO_SHOW`.
+
+**Decision:** A `NO_SHOW` appointment keeps its original slot historically occupied and must NOT be automatically reused.
+
+| Status | Slot behavior |
+| --- | --- |
+| `CANCELLED` | releases the slot |
+| `RESCHEDULED` | releases the slot |
+| `NO_SHOW` | keeps the slot historically occupied |
+
+The existing exclusion constraint remains unchanged:
+
+```text
+status NOT IN ('CANCELLED', 'RESCHEDULED')
+```
+
+**Consequences:**
+- Historical integrity of appointments is preserved.
+- The slot stays blocked for automatic reallocation; manual intervention would be required to free it.

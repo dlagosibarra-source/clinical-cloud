@@ -29,6 +29,16 @@ async function main() {
     process.exit(1);
   }
 
+  // Validate the database name before interpolating it into CREATE DATABASE.
+  // Restrict to simple identifiers to prevent arbitrary names or SQL injection.
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(targetDb)) {
+    console.error(
+      `ERROR: Invalid database name '${targetDb}'. ` +
+      'It must match the pattern ^[a-zA-Z_][a-zA-Z0-9_]*$.',
+    );
+    process.exit(1);
+  }
+
   // Connect to the administrative 'postgres' database
   url.pathname = '/postgres';
   const adminSql = postgres(url.toString(), { max: 1 });
