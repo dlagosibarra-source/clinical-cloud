@@ -1,0 +1,42 @@
+{
+    "$schema": "https://repomix.com/schemas/latest/schema.json",
+    "input": {
+        "maxFileSize": 5242880
+    },
+    "include": [
+        "src/**",
+        "drizzle/**",
+        "scripts/**",
+        "docs/architecture.md",
+        "tsconfig.json",
+        "next.config.ts",
+        "drizzle.config.ts",
+        "components.json"
+    ],
+    "ignore": {
+        "useGitignore": true,
+        "useDefaultPatterns": true,
+        "customPatterns": [
+            "public/**",
+            "package-lock.json",
+            "test-ai.ts",
+            "repomix-output.xml"
+        ]
+    },
+    "output": {
+        "filePath": "repomix-output.xml",
+        "style": "xml",
+        "compress": true,
+        "fileSummary": true,
+        "directoryStructure": true,
+        "removeComments": false,
+        "removeEmptyLines": false,
+        "topFilesLength": 5,
+        "git": {
+            "sortByChanges": true
+        }
+    },
+    "security": {
+        "enableSecurityCheck": true
+    }
+}

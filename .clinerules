@@ -1,0 +1,67 @@
+# Reglas obligatorias para agentes — clinical-cloud
+
+## 1. Directrices de Eficiencia y Preservación de Código (Ponytail)
+- **Directo al grano:** No generes introducciones conversacionales ni explicaciones teóricas extensas a menos que se solicite explícitamente. Actúa de inmediato.
+- **Preservación estricta:** No reescribas archivos completos cuando baste con editar líneas específicas.
+- **Cero destrucción:** Conserva comentarios críticos, tipado estricto y lógica existente. Nunca asumas que puedes prescindir de código que no comprendas de inmediato.
+- **Prohibido el uso de placeholders:** No uses comentarios evasivos como `// resto del código aquí`, `/* TODO: implementar luego */` o snipeos incompletos. Escribe la implementación requerida sin cortar el flujo existente.
+
+## 2. Estándares Técnicos del Proyecto
+- **Stack:** Next.js (App Router), TypeScript estricto, Tailwind CSS, shadcn/ui.
+- **Persistencia:** Drizzle ORM y base de datos relacional. Respeta siempre los esquemas multi-tenant y las convenciones de `updated_at`.
+- **Verificación:** Valida tipos e integridad sintáctica antes de confirmar soluciones (`npx tsc --noEmit` ante cambios en esquemas, repositorios o interfaces).
+
+## 3. Mapa de contexto del proyecto (Repomix)
+Este proyecto mantiene un mapa comprimido y apto para LLM de toda la arquitectura en `repomix-output.xml`.
+
+### Leer el mapa ANTES de inspeccionar archivos
+- Al iniciar cualquier tarea, consulta primero `repomix-output.xml` para ubicar la estructura, módulos, types y configuraciones.
+- NO leas archivos completos individualmente si la información requerida ya figura en el mapa. Inspecciona archivos individuales únicamente para detalles puntuales de implementación.
+- Esto es obligatorio para minimizar el consumo de contexto y tokens.
+
+### Regenerar el mapa tras cambios estructurales
+Después de crear o alterar archivos estructurales, es OBLIGATORIO ejecutar:
+
+```bash
+npm run context:update
+
+## 4. Colección Completa de Flujos de Trabajo (25 Agent Skills)
+
+### Diagnóstico y Estabilidad
+1. **Systematic Debugging:** Reproduce el fallo con un caso mínimo, aísla la capa de origen (UI, Server Action, Drizzle) y aplica la corrección mínima antes de alterar componentes externos.
+2. **Root Cause Analysis:** Resuelve la causa raíz de la excepción en lugar de envolverla en bloques `try/catch` vacíos o comprobaciones de tipos permisivas.
+3. **Regression Prevention:** Al solucionar un defecto, analiza los archivos dependientes identificados en el mapa de Repomix para evitar efectos secundarios.
+4. **Error Boundary Implementation:** Encapsula componentes reactivos propensos a fallos en límites de error claros con estados de fallback controlados.
+
+### Arquitectura y Refactorización
+5. **Surgical Refactor:** Modifica únicamente las líneas vinculadas al requerimiento sin reescribir archivos enteros ni alterar estilos o convenciones adyacentes.
+6. **Dead Code Elimination:** Identifica y retira importaciones huérfanas, variables sin consumo y funciones obsoletas generadas durante el cambio.
+7. **Modular Decoupling:** Separa responsabilidades respetando la arquitectura de capas (`domain`, `repositories`, `services`, `ui`).
+8. **Pattern Matching & Idiomatic Code:** Emplea patrones nativos de TypeScript y React modernos (Server Components por defecto, Client Components solo para interactividad).
+
+### Persistencia y Datos (Drizzle ORM)
+9. **Schema Evolution:** Al alterar entidades, define cambios incrementales en el esquema de Drizzle y genera la migración correspondiente en `drizzle/**`.
+10. **Multi-Tenant Isolation:** En cada consulta, inserción o mutación de datos clínicos o de usuarios, exige el filtro explícito por `tenant_id`/`organization_id`.
+11. **Query Optimization:** Evita problemas de consultas N+1 utilizando `with` (relaciones de Drizzle) o joins directos; no realices mapeos en memoria de tablas extensas.
+12. **Transaction Management:** Envuelve operaciones multi-tabla interdependientes en transacciones atómicas para impedir estados inconsistentes.
+
+### Tipado e Integridad
+13. **Type-First Contract:** Modifica primero las interfaces o tipos canónicos antes de tocar la implementación de servicios o componentes.
+14. **Strict Type Validation:** Prohibido el uso de `any` explícito o implícito. Utiliza `unknown`, genéricos o uniones discriminadas validadas.
+15. **Runtime Schema Validation:** Emplea esquemas de validación (Zod o Drizzle Zod) en todas las fronteras de entrada (cuerpos de request, formularios, Server Actions).
+
+### Verificación y Calidad
+16. **Pre-Completion Type Check:** Ejecuta obligatoriamente `npx tsc --noEmit` antes de marcar una tarea como concluida.
+17. **Test-Driven Design (TDD):** Define casos de prueba mínimos de entrada y salida esperada para lógica pura de negocio en servicios o repositorios.
+18. **Edge Case Analysis:** Considera estados nulos, arrays vacíos, cadenas en blanco y latencia de red en cada nueva interfaz o endpoint.
+19. **Lint & Formatting Discipline:** Respeta las reglas de ESLint configuradas; no desactives linters con directivas `eslint-disable` sin autorización expresa.
+
+### Rendimiento y UI
+20. **Bundle Size Awareness:** Prefiere utilidades nativas o librerías ligeras existentes sobre la instalación de nuevas dependencias externas.
+21. **Server vs Client Boundary:** Mantén el fetching y acceso a base de datos estrictamente en el servidor; nunca expongas credenciales ni lógica interna al bundle cliente.
+22. **Accessibility & Semantics:** Utiliza elementos HTML semánticos y atributos ARIA estándar en componentes basados en shadcn/ui.
+23. **State Locality:** Mantén el estado lo más cercano posible al componente que lo consume; evita estados globales innecesarios.
+
+### Seguridad y Despliegue
+24. **Secrets & Environment Governance:** No hardcodees URLs, tokens ni claves; impón la lectura exclusiva desde variables de entorno tipadas.
+25. **Audit Logging & Traceability:** Registra operaciones críticas de modificación clínica con marcas temporales (`updated_at`) y referencias al usuario operador.

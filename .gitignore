@@ -54,3 +54,6 @@ next-env.d.ts
 .vscode/
 *.swp
 *.swo
+
+# repomix (mapa de contexto regenerable)
+repomix-output.xml
