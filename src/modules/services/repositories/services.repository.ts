@@ -20,4 +20,7 @@ export class ServicesRepository {
       .from(services)
       .where(eq(services.organizationId, organizationId));
   }
+  async create(data: typeof services.$inferInsert) {
+    return this.db.insert(services).values(data).returning();
+  }
 }

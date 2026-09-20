@@ -20,4 +20,7 @@ export class AppointmentsRepository {
       .from(appointments)
       .where(eq(appointments.organizationId, organizationId));
   }
+  async create(data: typeof appointments.$inferInsert) {
+    return this.db.insert(appointments).values(data).returning();
+  }
 }
