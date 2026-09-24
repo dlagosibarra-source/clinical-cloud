@@ -1,0 +1,397 @@
+import type {
+  AgendaAppointment,
+  AgendaDentist,
+  AgendaLocation,
+  AgendaPatient,
+  AgendaService,
+} from "./types";
+
+export const MOCK_LOCATIONS: AgendaLocation[] = [
+  {
+    locationId: "00000000-0000-4000-a000-000000000004",
+    name: "Sucursal Central Polanco",
+    code: "POL-01",
+    address: "Av. Homero 1425, Int 302",
+    city: "Ciudad de México",
+  },
+  {
+    locationId: "00000000-0000-4000-a000-000000000014",
+    name: "Sucursal Santa Fe",
+    code: "STF-02",
+    address: "Vasco de Quiroga 3800",
+    city: "Ciudad de México",
+  },
+];
+
+export const MOCK_DENTISTS: AgendaDentist[] = [
+  {
+    dentistId: "00000000-0000-4000-a000-000000000003",
+    firstName: "Carlos",
+    lastName: "Ramírez",
+    professionalName: "Dr. Carlos Ramírez",
+    specialty: "Ortodoncia e Implantes",
+    avatarUrl: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80",
+    color: "#0891b2", // Cyan 600
+  },
+  {
+    dentistId: "00000000-0000-4000-a000-000000000013",
+    firstName: "Valeria",
+    lastName: "Montes",
+    professionalName: "Dra. Valeria Montes",
+    specialty: "Odontopediatría",
+    avatarUrl: "https://images.unsplash.com/photo-1594824813689-9a40552b75f5?w=150&auto=format&fit=crop&q=80",
+    color: "#0d9488", // Teal 600
+  },
+  {
+    dentistId: "00000000-0000-4000-a000-000000000023",
+    firstName: "Sebastián",
+    lastName: "Ríos",
+    professionalName: "Dr. Sebastián Ríos",
+    specialty: "Endodoncia",
+    avatarUrl: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150&auto=format&fit=crop&q=80",
+    color: "#6366f1", // Indigo 500
+  },
+];
+
+export const MOCK_SERVICES: AgendaService[] = [
+  {
+    serviceId: "00000000-0000-4000-a000-000000000006",
+    name: "Limpieza Profunda y Profilaxis",
+    durationMinutes: 30,
+    price: 650,
+    currency: "MXN",
+  },
+  {
+    serviceId: "00000000-0000-4000-a000-000000000016",
+    name: "Valoración General y Diagnóstico",
+    durationMinutes: 30,
+    price: 400,
+    currency: "MXN",
+  },
+  {
+    serviceId: "00000000-0000-4000-a000-000000000026",
+    name: "Resina Dental Estética",
+    durationMinutes: 45,
+    price: 950,
+    currency: "MXN",
+  },
+  {
+    serviceId: "00000000-0000-4000-a000-000000000036",
+    name: "Blanqueamiento Dental LED",
+    durationMinutes: 60,
+    price: 2400,
+    currency: "MXN",
+  },
+  {
+    serviceId: "00000000-0000-4000-a000-000000000046",
+    name: "Tratamiento de Conducto (Endodoncia)",
+    durationMinutes: 90,
+    price: 3200,
+    currency: "MXN",
+  },
+];
+
+export const MOCK_PATIENTS: AgendaPatient[] = [
+  {
+    patientId: "00000000-0000-4000-a000-000000000007",
+    firstName: "Ana",
+    lastName: "García",
+    phone: "+52 55 1234 5678",
+    email: "ana.garcia@example.com",
+    whatsappOptIn: true,
+  },
+  {
+    patientId: "00000000-0000-4000-a000-000000000017",
+    firstName: "Carlos",
+    lastName: "Mendoza",
+    phone: "+52 55 8765 4321",
+    email: "carlos.m@example.com",
+    whatsappOptIn: true,
+  },
+  {
+    patientId: "00000000-0000-4000-a000-000000000027",
+    firstName: "Elena",
+    lastName: "Torres",
+    phone: "+52 55 9988 7766",
+    email: "elena.t@example.com",
+    whatsappOptIn: false,
+  },
+  {
+    patientId: "00000000-0000-4000-a000-000000000037",
+    firstName: "Rodrigo",
+    lastName: "Vargas",
+    phone: "+52 55 6677 8899",
+    email: "rodrigo.vargas@example.com",
+    whatsappOptIn: true,
+  },
+  {
+    patientId: "00000000-0000-4000-a000-000000000047",
+    firstName: "Sofía",
+    lastName: "Hernández",
+    phone: "+52 55 3322 1100",
+    email: "sofia.h@example.com",
+    whatsappOptIn: true,
+  },
+];
+
+// Helper to generate dynamic mock appointments for today and this week
+export function generateMockAppointments(baseDateStr: string = new Date().toISOString().split("T")[0]!): AgendaAppointment[] {
+  // Compute dates for the current week around baseDateStr
+  const baseDate = new Date(`${baseDateStr}T00:00:00.000Z`);
+
+  const createIso = (dayOffset: number, hours: number, minutes: number) => {
+    const d = new Date(baseDate);
+    d.setUTCDate(d.getUTCDate() + dayOffset);
+    // In America/Mazatlan (UTC-7), add 7 hours to UTC so local daytime matches hours/minutes
+    d.setUTCHours(hours + 7, minutes, 0, 0);
+    return d.toISOString();
+  };
+
+  const createEndIso = (startIso: string, durationMinutes: number) => {
+    const d = new Date(startIso);
+    return new Date(d.getTime() + durationMinutes * 60000).toISOString();
+  };
+
+  const appointments: AgendaAppointment[] = [
+    // Today appointments (Day offset 0)
+    // Doctor Carlos Ramírez
+    {
+      appointmentId: "apt-001",
+      patientId: MOCK_PATIENTS[0]!.patientId,
+      patient: MOCK_PATIENTS[0]!,
+      dentistId: MOCK_DENTISTS[0]!.dentistId,
+      dentist: MOCK_DENTISTS[0]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[0]!.serviceId,
+      service: MOCK_SERVICES[0]!,
+      startAt: createIso(0, 9, 0),
+      endAt: createEndIso(createIso(0, 9, 0), 30),
+      durationMinutes: 30,
+      status: "COMPLETED",
+      notes: "Paciente puntual. Limpieza realizada sin molestias.",
+      serviceNameSnapshot: MOCK_SERVICES[0]!.name,
+      serviceDurationSnapshot: 30,
+      serviceValueSnapshot: MOCK_SERVICES[0]!.price,
+    },
+    {
+      appointmentId: "apt-002",
+      patientId: MOCK_PATIENTS[1]!.patientId,
+      patient: MOCK_PATIENTS[1]!,
+      dentistId: MOCK_DENTISTS[0]!.dentistId,
+      dentist: MOCK_DENTISTS[0]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[2]!.serviceId,
+      service: MOCK_SERVICES[2]!,
+      startAt: createIso(0, 10, 30),
+      endAt: createEndIso(createIso(0, 10, 30), 45),
+      durationMinutes: 45,
+      status: "CONFIRMED",
+      notes: "Restauración pieza 14 con resina composite.",
+      serviceNameSnapshot: MOCK_SERVICES[2]!.name,
+      serviceDurationSnapshot: 45,
+      serviceValueSnapshot: MOCK_SERVICES[2]!.price,
+    },
+    {
+      appointmentId: "apt-003",
+      patientId: MOCK_PATIENTS[2]!.patientId,
+      patient: MOCK_PATIENTS[2]!,
+      dentistId: MOCK_DENTISTS[0]!.dentistId,
+      dentist: MOCK_DENTISTS[0]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[3]!.serviceId,
+      service: MOCK_SERVICES[3]!,
+      startAt: createIso(0, 14, 0),
+      endAt: createEndIso(createIso(0, 14, 0), 60),
+      durationMinutes: 60,
+      status: "SCHEDULED",
+      notes: "Sesión 1 de aclaramiento dental LED.",
+      serviceNameSnapshot: MOCK_SERVICES[3]!.name,
+      serviceDurationSnapshot: 60,
+      serviceValueSnapshot: MOCK_SERVICES[3]!.price,
+    },
+    {
+      appointmentId: "apt-004",
+      patientId: MOCK_PATIENTS[3]!.patientId,
+      patient: MOCK_PATIENTS[3]!,
+      dentistId: MOCK_DENTISTS[0]!.dentistId,
+      dentist: MOCK_DENTISTS[0]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[1]!.serviceId,
+      service: MOCK_SERVICES[1]!,
+      startAt: createIso(0, 16, 0),
+      endAt: createEndIso(createIso(0, 16, 0), 30),
+      durationMinutes: 30,
+      status: "CANCELLED",
+      notes: "Canceló por motivos laborales vía WhatsApp.",
+      serviceNameSnapshot: MOCK_SERVICES[1]!.name,
+      serviceDurationSnapshot: 30,
+      serviceValueSnapshot: MOCK_SERVICES[1]!.price,
+    },
+
+    // Dra. Valeria Montes (Today)
+    {
+      appointmentId: "apt-005",
+      patientId: MOCK_PATIENTS[4]!.patientId,
+      patient: MOCK_PATIENTS[4]!,
+      dentistId: MOCK_DENTISTS[1]!.dentistId,
+      dentist: MOCK_DENTISTS[1]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[1]!.serviceId,
+      service: MOCK_SERVICES[1]!,
+      startAt: createIso(0, 9, 30),
+      endAt: createEndIso(createIso(0, 9, 30), 30),
+      durationMinutes: 30,
+      status: "CONFIRMED",
+      notes: "Primera consulta odontopediátrica.",
+      serviceNameSnapshot: MOCK_SERVICES[1]!.name,
+      serviceDurationSnapshot: 30,
+      serviceValueSnapshot: MOCK_SERVICES[1]!.price,
+    },
+    {
+      appointmentId: "apt-006",
+      patientId: MOCK_PATIENTS[0]!.patientId,
+      patient: MOCK_PATIENTS[0]!,
+      dentistId: MOCK_DENTISTS[1]!.dentistId,
+      dentist: MOCK_DENTISTS[1]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[0]!.serviceId,
+      service: MOCK_SERVICES[0]!,
+      startAt: createIso(0, 11, 30),
+      endAt: createEndIso(createIso(0, 11, 30), 30),
+      durationMinutes: 30,
+      status: "CONFIRMED",
+      notes: "Profilaxis y aplicación de sellador de fosetas.",
+      serviceNameSnapshot: MOCK_SERVICES[0]!.name,
+      serviceDurationSnapshot: 30,
+      serviceValueSnapshot: MOCK_SERVICES[0]!.price,
+    },
+    {
+      appointmentId: "apt-007",
+      patientId: MOCK_PATIENTS[2]!.patientId,
+      patient: MOCK_PATIENTS[2]!,
+      dentistId: MOCK_DENTISTS[1]!.dentistId,
+      dentist: MOCK_DENTISTS[1]!,
+      locationId: MOCK_LOCATIONS[1]!.locationId,
+      location: MOCK_LOCATIONS[1]!,
+      serviceId: MOCK_SERVICES[2]!.serviceId,
+      service: MOCK_SERVICES[2]!,
+      startAt: createIso(0, 15, 0),
+      endAt: createEndIso(createIso(0, 15, 0), 45),
+      durationMinutes: 45,
+      status: "NO_SHOW",
+      notes: "No se presentó ni contestó confirmación.",
+      serviceNameSnapshot: MOCK_SERVICES[2]!.name,
+      serviceDurationSnapshot: 45,
+      serviceValueSnapshot: MOCK_SERVICES[2]!.price,
+    },
+
+    // Dr. Sebastián Ríos (Today)
+    {
+      appointmentId: "apt-008",
+      patientId: MOCK_PATIENTS[1]!.patientId,
+      patient: MOCK_PATIENTS[1]!,
+      dentistId: MOCK_DENTISTS[2]!.dentistId,
+      dentist: MOCK_DENTISTS[2]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[4]!.serviceId,
+      service: MOCK_SERVICES[4]!,
+      startAt: createIso(0, 10, 0),
+      endAt: createEndIso(createIso(0, 10, 0), 90),
+      durationMinutes: 90,
+      status: "CONFIRMED",
+      notes: "Endodoncia molar superior 26. Anestesia troncular.",
+      serviceNameSnapshot: MOCK_SERVICES[4]!.name,
+      serviceDurationSnapshot: 90,
+      serviceValueSnapshot: MOCK_SERVICES[4]!.price,
+    },
+    {
+      appointmentId: "apt-009",
+      patientId: MOCK_PATIENTS[3]!.patientId,
+      patient: MOCK_PATIENTS[3]!,
+      dentistId: MOCK_DENTISTS[2]!.dentistId,
+      dentist: MOCK_DENTISTS[2]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[1]!.serviceId,
+      service: MOCK_SERVICES[1]!,
+      startAt: createIso(0, 13, 0),
+      endAt: createEndIso(createIso(0, 13, 0), 30),
+      durationMinutes: 30,
+      status: "SCHEDULED",
+      notes: "Evaluación postoperatoria y retiro de sutura.",
+      serviceNameSnapshot: MOCK_SERVICES[1]!.name,
+      serviceDurationSnapshot: 30,
+      serviceValueSnapshot: MOCK_SERVICES[1]!.price,
+    },
+
+    // Day offset +1 (Tomorrow)
+    {
+      appointmentId: "apt-010",
+      patientId: MOCK_PATIENTS[0]!.patientId,
+      patient: MOCK_PATIENTS[0]!,
+      dentistId: MOCK_DENTISTS[0]!.dentistId,
+      dentist: MOCK_DENTISTS[0]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[0]!.serviceId,
+      service: MOCK_SERVICES[0]!,
+      startAt: createIso(1, 10, 0),
+      endAt: createEndIso(createIso(1, 10, 0), 30),
+      durationMinutes: 30,
+      status: "CONFIRMED",
+      notes: "Limpieza semestral.",
+      serviceNameSnapshot: MOCK_SERVICES[0]!.name,
+      serviceDurationSnapshot: 30,
+      serviceValueSnapshot: MOCK_SERVICES[0]!.price,
+    },
+    {
+      appointmentId: "apt-011",
+      patientId: MOCK_PATIENTS[4]!.patientId,
+      patient: MOCK_PATIENTS[4]!,
+      dentistId: MOCK_DENTISTS[1]!.dentistId,
+      dentist: MOCK_DENTISTS[1]!,
+      locationId: MOCK_LOCATIONS[1]!.locationId,
+      location: MOCK_LOCATIONS[1]!,
+      serviceId: MOCK_SERVICES[3]!.serviceId,
+      service: MOCK_SERVICES[3]!,
+      startAt: createIso(1, 11, 0),
+      endAt: createEndIso(createIso(1, 11, 0), 60),
+      durationMinutes: 60,
+      status: "SCHEDULED",
+      notes: "Blanqueamiento LED para evento social.",
+      serviceNameSnapshot: MOCK_SERVICES[3]!.name,
+      serviceDurationSnapshot: 60,
+      serviceValueSnapshot: MOCK_SERVICES[3]!.price,
+    },
+
+    // Day offset -1 (Yesterday)
+    {
+      appointmentId: "apt-012",
+      patientId: MOCK_PATIENTS[1]!.patientId,
+      patient: MOCK_PATIENTS[1]!,
+      dentistId: MOCK_DENTISTS[0]!.dentistId,
+      dentist: MOCK_DENTISTS[0]!,
+      locationId: MOCK_LOCATIONS[0]!.locationId,
+      location: MOCK_LOCATIONS[0]!,
+      serviceId: MOCK_SERVICES[2]!.serviceId,
+      service: MOCK_SERVICES[2]!,
+      startAt: createIso(-1, 15, 30),
+      endAt: createEndIso(createIso(-1, 15, 30), 45),
+      durationMinutes: 45,
+      status: "COMPLETED",
+      notes: "Resina oclusal completada exitosamente.",
+      serviceNameSnapshot: MOCK_SERVICES[2]!.name,
+      serviceDurationSnapshot: 45,
+      serviceValueSnapshot: MOCK_SERVICES[2]!.price,
+    },
+  ];
+
+  return appointments;
+}

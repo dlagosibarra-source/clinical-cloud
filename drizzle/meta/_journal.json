@@ -15,6 +15,20 @@
       "when": 1789798478970,
       "tag": "0001_updated_at_triggers",
       "breakpoints": false
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789879102122,
+      "tag": "0002_furry_winter_soldier",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790049527737,
+      "tag": "0003_easy_susan_delgado",
+      "breakpoints": true
     }
   ]
 }

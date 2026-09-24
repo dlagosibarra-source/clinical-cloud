@@ -24,7 +24,7 @@ export const locations = pgTable('locations', {
   state: varchar('state', { length: 100 }),
   postalCode: varchar('postal_code', { length: 20 }),
   countryCode: varchar('country_code', { length: 10 }),
-  timezone: varchar('timezone', { length: 100 }),
+  timezone: varchar('timezone', { length: 100 }).default('America/Mexico_City'),
   status: varchar('status', { length: 20 }).notNull().default('ACTIVE'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

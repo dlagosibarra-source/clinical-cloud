@@ -9,8 +9,9 @@ export class OrganizationService {
     }
 
     async createOrganization(data: { name: string; slug: string }) {
-        // Implementation would go here, using the repository
-        // For now, we satisfy the requirement of creating the service
-        return { success: true, data };
+        return this.repository.create({
+            name: data.name,
+            slug: data.slug,
+        });
     }
 }

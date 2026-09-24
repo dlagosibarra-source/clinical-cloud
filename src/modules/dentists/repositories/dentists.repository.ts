@@ -20,4 +20,7 @@ export class DentistsRepository {
       .from(dentists)
       .where(eq(dentists.organizationId, organizationId));
   }
+  async create(data: typeof dentists.$inferInsert) {
+    return this.db.insert(dentists).values(data).returning();
+  }
 }

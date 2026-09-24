@@ -16,3 +16,4 @@ export { locations } from '../../modules/locations/types/schema';
 export { resources } from '../../modules/resources/types/schema';
 export { services } from '../../modules/services/types/schema';
 export { appointments } from '../../modules/appointments/types/schema';
+export { dentistAvailability, availabilityBlocks } from '../../modules/availability/types/schema';

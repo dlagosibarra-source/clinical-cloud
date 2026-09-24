@@ -130,3 +130,11 @@ export const Source = {
 } as const;
 
 export type Source = (typeof Source)[keyof typeof Source];
+
+// ─── Auth Context ───────────────────────────────────────────
+
+export interface AuthContext {
+  user_id: string;
+  organization_id: string;
+  role: UserRole;
+}

@@ -17,4 +17,7 @@ export class OrganizationsRepository {
   async findAll() {
     return this.db.select().from(organizations);
   }
+  async create(data: typeof organizations.$inferInsert) {
+    return this.db.insert(organizations).values(data).returning();
+  }
 }
