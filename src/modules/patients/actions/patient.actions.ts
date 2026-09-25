@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "../../../shared/database";
-import { getAuthenticatedContext } from "../../../shared/auth/context";
+import { getAuthenticatedContext } from "../../../shared/auth/server-context";
 import { PatientService } from "../services/patient.service";
 import { CreatePatientSchema, UpdatePatientSchema, SearchPatientsQuerySchema } from "../schemas/patient.schema";
 import { schema } from "../../../shared/database";

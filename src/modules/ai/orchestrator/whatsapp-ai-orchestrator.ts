@@ -5,7 +5,7 @@ import {
 import { sendWhatsAppMessage } from "../services/whatsapp.service";
 import { ConversationMemoryService } from "../services/conversation-memory.service";
 import { db } from "@/shared/database";
-import { getAuthenticatedContext } from "@/shared/auth/context";
+import { getAuthenticatedContext } from "@/shared/auth/server-context";
 import { PatientsRepository } from "@/modules/patients/repositories/patients.repository";
 
 export interface HandleInboundMessageParams {

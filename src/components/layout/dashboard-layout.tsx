@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarDays,
   CalendarPlus,
@@ -11,12 +11,13 @@ import {
   X,
   Stethoscope,
   Activity,
-  ChevronRight,
   Sparkles,
+  LogOut,
 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { cn } from "cn";
+import { useAuth } from "@/shared/auth/context";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -51,12 +52,47 @@ const NAV_ITEMS = [
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [prevPathname, setPrevPathname] = React.useState(pathname);
 
-  // Close mobile sidebar on route change
-  React.useEffect(() => {
+  // If this is an auth route, bypass the dashboard layout entirely
+  const isAuthRoute =
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/register") ||
+    pathname?.startsWith("/forgot-password");
+
+  // Close mobile sidebar on route change without triggering cascading renders in effect
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMobileOpen(false);
-  }, [pathname]);
+  }
+
+  // Route protection: If not authenticated and attempting to view dashboard, redirect to login
+  React.useEffect(() => {
+    if (!isAuthRoute && !isAuthenticated && !isLoading) {
+      router.replace("/login");
+    }
+  }, [isAuthRoute, isAuthenticated, isLoading, router]);
+
+  if (isAuthRoute) {
+    return <>{children}</>;
+  }
+
+  if (!isAuthenticated && !isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4">
+        <div className="flex flex-col items-center gap-3 text-center animate-in fade-in duration-200">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-cyan-600/10 text-cyan-700 dark:text-cyan-300">
+            <Stethoscope className="size-6 animate-pulse" />
+          </div>
+          <p className="text-sm font-semibold">Verificando sesión clínica...</p>
+          <p className="text-xs text-muted-foreground">Redirigiendo a inicio de sesión</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground">
@@ -219,19 +255,39 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* User Profile snippet */}
           <div className="flex items-center gap-2.5 px-1 py-0.5">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-cyan-600/10 text-cyan-700 dark:text-cyan-300 font-bold text-xs border border-cyan-500/20">
-              AD
+              {user?.name
+                ? user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()
+                : "AD"}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-foreground truncate leading-tight">
-                Admin Demo
+                {user?.name || "Admin Demo"}
               </p>
               <p className="text-[10px] text-muted-foreground truncate">
-                owner@demo.clinicalcloud.dev
+                {user?.email || "owner@demo.clinicalcloud.dev"}
               </p>
             </div>
             <Badge variant="clinical" className="text-[9px] px-1.5 py-0 h-4 uppercase font-bold tracking-wider shrink-0">
-              OWNER
+              {user?.role || "OWNER"}
             </Badge>
+
+            <button
+              type="button"
+              onClick={async () => {
+                await logout();
+                router.replace("/login");
+              }}
+              className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0"
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+            >
+              <LogOut className="size-3.5" />
+            </button>
           </div>
         </div>
       </aside>

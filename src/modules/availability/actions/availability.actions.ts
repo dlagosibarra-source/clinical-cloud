@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "../../../shared/database";
-import { getAuthenticatedContext } from "../../../shared/auth/context";
+import { getAuthenticatedContext } from "../../../shared/auth/server-context";
 import { AvailabilityService } from "../services/availability.service";
 import { GetAvailabilityQuerySchema } from "../schemas/availability.schema";
 

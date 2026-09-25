@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "../../../shared/database";
 import * as schema from "../../../shared/database/schema";
 import { and, eq, gte, lte, ilike, or, desc, notInArray } from "drizzle-orm";
-import { getAuthenticatedContext } from "../../../shared/auth/context";
+import { getAuthenticatedContext } from "../../../shared/auth/server-context";
 import { revalidatePath } from "next/cache";
 import {
   formatAppointmentTime,

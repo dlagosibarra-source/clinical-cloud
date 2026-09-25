@@ -1,5 +1,5 @@
 import { db, schema } from "../src/shared/database";
-import { getAuthenticatedContext } from "../src/shared/auth/context";
+import { getAuthenticatedContext } from "../src/shared/auth/server-context";
 import { OrganizationService } from "../src/modules/organizations/services/organization.service";
 import { ServiceService } from "../src/modules/services/services/service.service";
 import { PatientService } from "../src/modules/patients/services/patient.service";

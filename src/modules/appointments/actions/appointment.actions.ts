@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "../../../shared/database";
-import { getAuthenticatedContext } from "../../../shared/auth/context";
+import { getAuthenticatedContext } from "../../../shared/auth/server-context";
 import { AppointmentService } from "../services/appointment.service";
 import { CreateAppointmentSchema } from "../schemas/appointment.schema";
 import { and, eq, gte, lte, asc } from "drizzle-orm";

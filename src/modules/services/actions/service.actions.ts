@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "../../../shared/database";
-import { getAuthenticatedContext } from "../../../shared/auth/context";
+import { getAuthenticatedContext } from "../../../shared/auth/server-context";
 import { ServiceService } from "../services/service.service";
 import { CreateServiceSchema, UpdateServiceSchema } from "../schemas/service.schema";
 
