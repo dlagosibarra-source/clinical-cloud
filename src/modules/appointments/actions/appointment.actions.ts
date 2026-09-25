@@ -16,7 +16,7 @@ import type {
 } from "../../agenda/types";
 
 export async function createAppointmentAction(rawData: unknown) {
-    const context = getAuthenticatedContext();
+    const context = await getAuthenticatedContext();
 
     const validated = CreateAppointmentSchema.safeParse(rawData);
     if (!validated.success) {
@@ -112,7 +112,7 @@ export async function createAppointmentAction(rawData: unknown) {
 }
 
 export async function getAgendaAppointmentsAction(date: string, locationId?: string) {
-    const context = getAuthenticatedContext();
+    const context = await getAuthenticatedContext();
 
     try {
         // Fetch dentists and locations for the active organization
@@ -283,7 +283,7 @@ export async function updateAppointmentStatusAction(
     appointmentId: string,
     status: AppointmentStatus
 ) {
-    const context = getAuthenticatedContext();
+    const context = await getAuthenticatedContext();
     const appointmentService = new AppointmentService(db);
 
     try {

@@ -1,6 +1,24 @@
 "use client";
 
 import * as React from "react";
+import { Amplify } from "aws-amplify";
+import {
+  signIn as amplifySignIn,
+  signUp as amplifySignUp,
+  signOut as amplifySignOut,
+  confirmSignUp as amplifyConfirmSignUp,
+  resetPassword as amplifyResetPassword,
+  confirmResetPassword as amplifyConfirmResetPassword,
+  getCurrentUser,
+  fetchUserAttributes,
+  autoSignIn,
+} from "aws-amplify/auth";
+import { amplifyConfig } from "./amplify-config";
+
+// ─── Configure Amplify (client-side, with cookie storage for SSR) ───────────
+Amplify.configure(amplifyConfig, { ssr: true });
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 export interface AuthUser {
   id: string;
@@ -9,114 +27,328 @@ export interface AuthUser {
   organizationId: string;
   name?: string;
   clinicName?: string;
+  cognitoSub: string;
 }
 
 export interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email?: string, password?: string) => Promise<void>;
+  isConfigured: boolean;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  register: (params: {
+    email: string;
+    password: string;
+    adminName: string;
+    clinicName: string;
+  }) => Promise<{ needsConfirmation: boolean }>;
+  confirmSignUp: (email: string, code: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  confirmResetPassword: (
+    email: string,
+    code: string,
+    newPassword: string
+  ) => Promise<void>;
 }
 
-export const MOCK_USER: AuthUser = {
-  id: "00000000-0000-4000-a000-000000000002",
-  email: "owner@demo.clinicalcloud.dev",
-  role: "OWNER",
-  organizationId: "00000000-0000-4000-a000-000000000001",
-  name: "Admin Demo",
-  clinicName: "Clínica Dental Demo",
-};
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+export function isCognitoConfigured(): boolean {
+  return (
+    !!process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID &&
+    !!process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID
+  );
+}
+
+/**
+ * Map Cognito error codes to user-friendly Spanish messages.
+ */
+export function getCognitoErrorMessage(error: unknown): string {
+  if (error && typeof error === "object") {
+    if ("message" in error && typeof error.message === "string") {
+      if (error.message.includes("Cognito no está configurado")) {
+        return error.message;
+      }
+    }
+    if ("name" in error) {
+      const name = (error as { name: string }).name;
+      switch (name) {
+        case "UserAlreadyAuthenticatedException":
+          return "Ya tienes una sesión activa.";
+        case "NotAuthorizedException":
+          return "Correo electrónico o contraseña incorrectos.";
+        case "UserNotFoundException":
+          return "No se encontró una cuenta con este correo electrónico.";
+        case "UserNotConfirmedException":
+          return "Tu cuenta no ha sido verificada. Revisa tu correo para el código de confirmación.";
+        case "UsernameExistsException":
+          return "Ya existe una cuenta con este correo electrónico.";
+        case "InvalidPasswordException":
+          return "La contraseña no cumple con los requisitos de seguridad.";
+        case "CodeMismatchException":
+          return "El código de verificación es incorrecto.";
+        case "ExpiredCodeException":
+          return "El código de verificación ha expirado. Solicita uno nuevo.";
+        case "LimitExceededException":
+          return "Demasiados intentos. Espera unos minutos antes de intentar nuevamente.";
+        case "InvalidParameterException":
+          return "Uno o más campos son inválidos. Verifica la información ingresada.";
+        default:
+          break;
+      }
+    }
+  }
+  return "Ocurrió un error inesperado. Intenta nuevamente.";
+}
+
+// ─── Context ────────────────────────────────────────────────────────────────
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = "clinical_cloud_auth_state";
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(() => {
-    if (typeof window !== "undefined") {
+  const [user, setUser] = React.useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+
+  const isAuthenticated = user !== null;
+
+  // ─── Check for existing session on mount ────────────────────────────────
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      if (!isCognitoConfigured()) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const stored = window.localStorage.getItem(AUTH_STORAGE_KEY);
-        if (stored !== null) {
-          return stored === "true";
+        const cognitoUser = await getCurrentUser();
+        const attributes = await fetchUserAttributes();
+
+        if (!cancelled) {
+          setUser({
+            id: cognitoUser.userId,
+            cognitoSub: cognitoUser.userId,
+            email: attributes.email ?? "",
+            name: attributes.given_name ?? attributes.name ?? "",
+            role: attributes["custom:role"] ?? "OWNER",
+            organizationId: attributes["custom:organization_id"] ?? "",
+            clinicName: attributes["custom:clinic_name"] ?? "",
+          });
         }
       } catch {
-        // Fallback to default state
-      }
-    }
-    return true;
-  });
-
-  const [user, setUser] = React.useState<AuthUser | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = window.localStorage.getItem(AUTH_STORAGE_KEY);
-        if (stored !== null) {
-          return stored === "true" ? MOCK_USER : null;
+        // No active session — user is not authenticated
+        if (!cancelled) {
+          setUser(null);
         }
-      } catch {
-        // Fallback to default state
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
-    return MOCK_USER;
-  });
 
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-
-  const login = React.useCallback(async (email?: string, _password?: string) => {
-    setIsLoading(true);
-    // Simulate lightweight auth delay for smooth UX feedback
-    await new Promise((resolve) => setTimeout(resolve, 350));
-
-    const authenticatedUser: AuthUser = {
-      ...MOCK_USER,
-      email: email && email.trim() !== "" ? email.trim() : MOCK_USER.email,
+    checkSession();
+    return () => {
+      cancelled = true;
     };
+  }, []);
 
-    setUser(authenticatedUser);
-    setIsAuthenticated(true);
-    setIsLoading(false);
+  // ─── Login ──────────────────────────────────────────────────────────────
+  const login = React.useCallback(async (email: string, password: string) => {
+    if (!isCognitoConfigured()) {
+      throw new Error("Cognito no está configurado. Revisa las variables de entorno.");
+    }
 
+    setIsLoading(true);
     try {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, "true");
-    } catch {
-      // Ignore storage errors in restricted contexts
+      const { isSignedIn, nextStep } = await amplifySignIn({
+        username: email,
+        password,
+      });
+
+      if (nextStep.signInStep === "CONFIRM_SIGN_UP") {
+        throw Object.assign(new Error("User not confirmed"), {
+          name: "UserNotConfirmedException",
+        });
+      }
+
+      if (isSignedIn) {
+        const cognitoUser = await getCurrentUser();
+        const attributes = await fetchUserAttributes();
+
+        setUser({
+          id: cognitoUser.userId,
+          cognitoSub: cognitoUser.userId,
+          email: attributes.email ?? email,
+          name: attributes.given_name ?? attributes.name ?? "",
+          role: attributes["custom:role"] ?? "OWNER",
+          organizationId: attributes["custom:organization_id"] ?? "",
+          clinicName: attributes["custom:clinic_name"] ?? "",
+        });
+      }
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
+  // ─── Register ───────────────────────────────────────────────────────────
+  const register = React.useCallback(
+    async (params: {
+      email: string;
+      password: string;
+      adminName: string;
+      clinicName: string;
+    }): Promise<{ needsConfirmation: boolean }> => {
+      if (!isCognitoConfigured()) {
+        throw new Error("Cognito no está configurado. Revisa las variables de entorno.");
+      }
+
+      setIsLoading(true);
+      try {
+        const { isSignUpComplete, nextStep } = await amplifySignUp({
+          username: params.email,
+          password: params.password,
+          options: {
+            userAttributes: {
+              email: params.email,
+              given_name: params.adminName,
+              "custom:clinic_name": params.clinicName,
+            },
+            autoSignIn: true,
+          },
+        });
+
+        if (isSignUpComplete) {
+          // Auto sign-in was successful
+          try {
+            await autoSignIn();
+            const cognitoUser = await getCurrentUser();
+            const attributes = await fetchUserAttributes();
+            setUser({
+              id: cognitoUser.userId,
+              cognitoSub: cognitoUser.userId,
+              email: attributes.email ?? params.email,
+              name: params.adminName,
+              role: "OWNER",
+              organizationId: attributes["custom:organization_id"] ?? "",
+              clinicName: params.clinicName,
+            });
+          } catch {
+            // autoSignIn may fail, user needs to log in manually
+          }
+          return { needsConfirmation: false };
+        }
+
+        if (nextStep.signUpStep === "CONFIRM_SIGN_UP") {
+          return { needsConfirmation: true };
+        }
+
+        return { needsConfirmation: false };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  // ─── Confirm Sign Up ───────────────────────────────────────────────────
+  const confirmSignUp = React.useCallback(
+    async (email: string, code: string) => {
+      if (!isCognitoConfigured()) {
+        throw new Error("Cognito no está configurado.");
+      }
+
+      setIsLoading(true);
+      try {
+        await amplifyConfirmSignUp({
+          username: email,
+          confirmationCode: code,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  // ─── Logout ─────────────────────────────────────────────────────────────
   const logout = React.useCallback(async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    setUser(null);
-    setIsAuthenticated(false);
-    setIsLoading(false);
-
     try {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, "false");
-    } catch {
-      // Ignore storage errors
+      if (isCognitoConfigured()) {
+        await amplifySignOut();
+      }
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  const resetPassword = React.useCallback(async (_email: string) => {
+  // ─── Reset Password ────────────────────────────────────────────────────
+  const resetPasswordFn = React.useCallback(async (email: string) => {
+    if (!isCognitoConfigured()) {
+      throw new Error("Cognito no está configurado.");
+    }
+
     setIsLoading(true);
-    // Placeholder simulation
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    setIsLoading(false);
+    try {
+      await amplifyResetPassword({ username: email });
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  // ─── Confirm Reset Password ────────────────────────────────────────────
+  const confirmResetPasswordFn = React.useCallback(
+    async (email: string, code: string, newPassword: string) => {
+      if (!isCognitoConfigured()) {
+        throw new Error("Cognito no está configurado.");
+      }
+
+      setIsLoading(true);
+      try {
+        await amplifyConfirmResetPassword({
+          username: email,
+          confirmationCode: code,
+          newPassword,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  // ─── Context Value ─────────────────────────────────────────────────────
+  const isConfigured = React.useMemo(() => isCognitoConfigured(), []);
 
   const value = React.useMemo<AuthContextType>(
     () => ({
       user,
       isAuthenticated,
       isLoading,
+      isConfigured,
       login,
       logout,
-      resetPassword,
+      register,
+      confirmSignUp,
+      resetPassword: resetPasswordFn,
+      confirmResetPassword: confirmResetPasswordFn,
     }),
-    [user, isAuthenticated, isLoading, login, logout, resetPassword]
+    [
+      user,
+      isAuthenticated,
+      isLoading,
+      isConfigured,
+      login,
+      logout,
+      register,
+      confirmSignUp,
+      resetPasswordFn,
+      confirmResetPasswordFn,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

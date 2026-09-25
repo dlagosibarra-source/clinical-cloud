@@ -77,7 +77,7 @@ export async function executeCheckAvailability(params: {
   date: string;
   time?: string;
 }) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const orgId = context.organization_id || DEFAULT_ORG_ID;
 
   const targetDateStr = parseTargetDate(params.date);
@@ -186,7 +186,7 @@ export async function executeBookAppointment(params: {
   clinical_notes?: string;
   is_emergency?: boolean;
 }) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const orgId = context.organization_id || DEFAULT_ORG_ID;
 
   // Clean phone to digits
@@ -436,7 +436,7 @@ export async function executeRescheduleAppointment(params: {
   newTime: string;
   reason?: string;
 }) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const orgId = context.organization_id || DEFAULT_ORG_ID;
 
   // 1. Locate the appointment to reschedule
@@ -659,7 +659,7 @@ export const rescheduleAppointmentMcpTool = tool({
  * Consulta los servicios y tratamientos activos de la clínica con su precio oficial, duración y descripción.
  */
 export async function executeGetTreatmentPrices(params?: { query?: string }) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const orgId = context.organization_id || DEFAULT_ORG_ID;
 
   const rawServices = await db
@@ -780,7 +780,7 @@ export async function executeRegisterPatient(params: {
   gender?: "MASCULINO" | "FEMENINO" | "OTRO";
   whatsappOptIn?: boolean;
 }) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const orgId = context.organization_id || DEFAULT_ORG_ID;
 
   const cleanDigits = params.phone.replace(/\D/g, "");

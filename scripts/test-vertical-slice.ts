@@ -22,7 +22,7 @@ async function main() {
     console.log("-----------------------------------------------------");
 
     try {
-        authContext = getAuthenticatedContext();
+        authContext = await getAuthenticatedContext();
         organizationService = new OrganizationService(db);
         serviceService = new ServiceService(db);
         patientService = new PatientService(db);
@@ -279,6 +279,7 @@ async function main() {
 
         console.log("-----------------------------------------------------");
         console.log("🎉 Vertical Slice Integration Test Completed Successfully!");
+        process.exit(0);
     } catch (error: unknown) {
         console.error("-----------------------------------------------------");
         console.error("❌ Vertical Slice Integration Test Failed!");

@@ -18,7 +18,7 @@ function safeRevalidatePath(path: string) {
 }
 
 export async function createPatientAction(input: unknown) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const validated = CreatePatientSchema.safeParse(input);
   if (!validated.success) {
     const fieldErrors = validated.error.flatten().fieldErrors;
@@ -52,7 +52,7 @@ export async function createPatientAction(input: unknown) {
 }
 
 export async function updatePatientAction(patientId: string, input: unknown) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const validated = UpdatePatientSchema.safeParse(input);
   if (!validated.success) {
     const fieldErrors = validated.error.flatten().fieldErrors;
@@ -98,7 +98,7 @@ import type { PatientListItem, PatientHistoryItem, PatientProfileData } from "..
 import type { AppointmentStatus } from "../../agenda/types";
 
 export async function searchPatientsAction(input: unknown) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const validated = SearchPatientsQuerySchema.safeParse(input);
   if (!validated.success) {
     return { success: false, status: 400, error: "Invalid input", details: validated.error.flatten() };
@@ -114,7 +114,7 @@ export async function searchPatientsAction(input: unknown) {
 }
 
 export async function getPatientHistoryAction(patientId: string) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   try {
     const patient = await patientService.getById(context, patientId);
     if (!patient) return { success: false, status: 404, error: "Patient not found" };
@@ -127,7 +127,7 @@ export async function getPatientHistoryAction(patientId: string) {
 }
 
 export async function getPatientsListAction(query: string = "", page: number = 1, limit: number = 20) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   try {
     const offset = (page - 1) * limit;
 
@@ -221,7 +221,7 @@ export async function getPatientsListAction(query: string = "", page: number = 1
 }
 
 export async function getPatientDetailsAction(patientId: string) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   try {
     const patientResult = await db
       .select()

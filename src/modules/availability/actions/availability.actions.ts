@@ -6,7 +6,7 @@ import { AvailabilityService } from "../services/availability.service";
 import { GetAvailabilityQuerySchema } from "../schemas/availability.schema";
 
 export async function getAvailableSlotsAction(rawData: unknown) {
-    const context = getAuthenticatedContext();
+    const context = await getAuthenticatedContext();
     
     const validated = GetAvailabilityQuerySchema.safeParse(rawData);
     if (!validated.success) {

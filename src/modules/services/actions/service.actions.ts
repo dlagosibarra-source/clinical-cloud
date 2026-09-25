@@ -17,7 +17,7 @@ function safeRevalidatePath(path: string) {
 }
 
 export async function getServicesListAction(query?: string, status?: string) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   try {
     const list = await serviceService.getServices(context, query, status);
     return {
@@ -37,7 +37,7 @@ export async function getServicesListAction(query?: string, status?: string) {
 }
 
 export async function createServiceAction(input: unknown) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const validated = CreateServiceSchema.safeParse(input);
 
   if (!validated.success) {
@@ -80,7 +80,7 @@ export async function createServiceAction(input: unknown) {
 }
 
 export async function updateServiceAction(serviceId: string, input: unknown) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
   const validated = UpdateServiceSchema.safeParse(input);
 
   if (!validated.success) {
@@ -127,7 +127,7 @@ export async function updateServiceAction(serviceId: string, input: unknown) {
 }
 
 export async function deleteServiceAction(serviceId: string) {
-  const context = getAuthenticatedContext();
+  const context = await getAuthenticatedContext();
 
   try {
     const deactivated = await serviceService.deleteService(context, serviceId);

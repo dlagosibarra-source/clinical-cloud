@@ -2,17 +2,24 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/shared/auth/context";
+import { useAuth, getCognitoErrorMessage } from "@/shared/auth/context";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isConfigured } = useAuth();
+  const searchParams = useSearchParams();
+  const [successMessage] = React.useState<string | null>(() => {
+    if (searchParams.get('confirmed') === 'true') {
+      return 'Email verificado exitosamente. Ahora puedes iniciar sesión.';
+    }
+    return null;
+  });
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -36,15 +43,13 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push("/agenda");
-    } catch {
-      setError("Error al iniciar sesión. Intenta nuevamente.");
+    } catch (err) {
+      if (err && typeof err === 'object' && 'name' in err && (err as { name: string }).name === 'UserNotConfirmedException') {
+        router.push(`/confirm-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
+      setError(getCognitoErrorMessage(err));
     }
-  };
-
-  const handleFillDemo = () => {
-    setEmail("owner@demo.clinicalcloud.dev");
-    setPassword("DemoPassword2026!");
-    setError(null);
   };
 
   return (
@@ -60,6 +65,19 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          {!isConfigured && (
+            <div className="p-3 text-xs rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 space-y-1 animate-in fade-in duration-200">
+              <p className="font-semibold">Modo Desarrollo: AWS Cognito no configurado</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Define <code className="font-mono text-[10px]">NEXT_PUBLIC_COGNITO_USER_POOL_ID</code> y <code className="font-mono text-[10px]">NEXT_PUBLIC_COGNITO_CLIENT_ID</code> en <code className="font-mono text-[10px]">.env.local</code> para habilitar la autenticación real.
+              </p>
+            </div>
+          )}
+          {successMessage && (
+            <div className="p-3 text-xs rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 animate-in fade-in duration-200">
+              {successMessage}
+            </div>
+          )}
           {error && (
             <div className="p-3 text-xs rounded-lg bg-destructive/10 border border-destructive/20 text-destructive animate-in fade-in duration-200">
               {error}
@@ -121,26 +139,6 @@ export default function LoginPage() {
                 )}
               </button>
             </div>
-          </div>
-
-          {/* Quick Demo Credentials Autofill Banner */}
-          <div className="p-2.5 rounded-lg border border-cyan-500/20 bg-cyan-50/50 dark:bg-cyan-950/20 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <Sparkles className="size-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
-              <div className="text-[11px] text-muted-foreground truncate">
-                <span className="font-semibold text-foreground">Cuenta demo:</span>{" "}
-                owner@demo.clinicalcloud.dev
-              </div>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="xs"
-              onClick={handleFillDemo}
-              className="text-[10px] h-6 px-2 text-cyan-700 dark:text-cyan-300 border-cyan-500/30 hover:bg-cyan-100/50 dark:hover:bg-cyan-900/30 shrink-0"
-            >
-              Autocompletar
-            </Button>
           </div>
         </CardContent>
 

@@ -8,11 +8,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/shared/auth/context";
+import { useAuth, getCognitoErrorMessage } from "@/shared/auth/context";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
+  const { register, isLoading } = useAuth();
 
   const [clinicName, setClinicName] = React.useState("");
   const [adminName, setAdminName] = React.useState("");
@@ -46,10 +46,20 @@ export default function RegisterPage() {
     }
 
     try {
-      await login(email, password);
-      router.push("/agenda");
-    } catch {
-      setError("Error al registrar la clínica. Intenta nuevamente.");
+      const { needsConfirmation } = await register({
+        email,
+        password,
+        adminName,
+        clinicName,
+      });
+
+      if (needsConfirmation) {
+        router.push(`/confirm-email?email=${encodeURIComponent(email)}`);
+      } else {
+        router.push("/agenda");
+      }
+    } catch (err) {
+      setError(getCognitoErrorMessage(err));
     }
   };
 

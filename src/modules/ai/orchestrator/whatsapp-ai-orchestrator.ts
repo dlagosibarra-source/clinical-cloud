@@ -49,7 +49,7 @@ export async function handleInboundWhatsAppMessage({
     ConversationMemoryService.appendTurn(cleanPhone, "user", userText);
 
     // 3. Query PostgreSQL for patient identity (New vs Recurring)
-    const context = getAuthenticatedContext();
+    const context = await getAuthenticatedContext();
     const patientRepo = new PatientsRepository(db);
     const existingPatient = await patientRepo.findByPhone(
       context.organization_id,

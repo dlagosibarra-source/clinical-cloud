@@ -16,8 +16,10 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.114",
+    "@aws-amplify/adapter-nextjs": "^1.8.0",
     "@base-ui/react": "^1.8.0",
     "ai": "^6.0.286",
+    "aws-amplify": "^6.22.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.6",
     "drizzle-orm": "^0.45.2",

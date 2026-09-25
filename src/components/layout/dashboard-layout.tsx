@@ -61,7 +61,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const isAuthRoute =
     pathname?.startsWith("/login") ||
     pathname?.startsWith("/register") ||
-    pathname?.startsWith("/forgot-password");
+    pathname?.startsWith("/forgot-password") ||
+    pathname?.startsWith("/confirm-email");
 
   // Close mobile sidebar on route change without triggering cascading renders in effect
   if (pathname !== prevPathname) {
