@@ -1,0 +1,19 @@
+# ─────────────────────────────────────────────────────────────
+# Clinical Cloud - Terraform Development Variables Example
+# Copy to terraform.tfvars to customize your deployment
+# ─────────────────────────────────────────────────────────────
+
+aws_region         = "us-east-2"
+environment        = "dev"
+project_name       = "clinical-cloud"
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["us-east-2a", "us-east-2b"]
+
+# Cost optimization: keep NAT Gateway disabled in dev unless public egress from private subnets is required
+enable_nat_gateway = false
+
+# Database settings
+db_name            = "clinical_cloud_dev"
+db_username        = "postgres"
+# db_password      = "superSecretPassword123!" # If omitted, a random 24-char password will be generated & stored in Secrets Manager
+db_instance_class  = "db.t4g.micro"
