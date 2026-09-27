@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth, getCognitoErrorMessage } from "@/shared/auth/context";
 import { resendSignUpCode } from "aws-amplify/auth";
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -167,5 +167,17 @@ export default function ConfirmEmailPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function ConfirmEmailPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="flex justify-center p-8">
+        <Loader2 className="size-6 animate-spin text-cyan-600" />
+      </div>
+    }>
+      <ConfirmEmailContent />
+    </React.Suspense>
   );
 }

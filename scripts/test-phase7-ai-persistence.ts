@@ -74,6 +74,10 @@ async function main() {
     })
     .returning();
 
+  if (!testPatient) {
+    throw new Error('STEP 1 FAILED: Failed to seed test patient');
+  }
+
   console.log(`  ✓ Patient seeded: ID=${testPatient.patientId}, Name=${testPatient.firstName} ${testPatient.lastName}`);
   console.log('✅ STEP 1 PASSED: Patient ready.\n');
 
@@ -259,6 +263,9 @@ async function main() {
   }
   if (interaction2.totalTokens <= 0) {
     throw new Error('STEP 6 FAILED: Turn 2 totalTokens must be > 0');
+  }
+  if (!contextRecord2) {
+    throw new Error('STEP 6 FAILED: Turn 2 context record not found in DB');
   }
   if (contextRecord2.contextVersion !== 2) {
     throw new Error(`STEP 6 FAILED: Expected contextVersion 2 after second turn, got ${contextRecord2.contextVersion}`);

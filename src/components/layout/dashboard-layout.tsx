@@ -25,6 +25,12 @@ interface DashboardLayoutProps {
 
 const NAV_ITEMS = [
   {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: Activity,
+    description: "Métricas operativas y KPIs",
+  },
+  {
     title: "Agenda",
     href: "/agenda",
     icon: CalendarDays,

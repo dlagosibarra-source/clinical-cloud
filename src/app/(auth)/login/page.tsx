@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth, getCognitoErrorMessage } from "@/shared/auth/context";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const { login, isLoading, isConfigured } = useAuth();
   const searchParams = useSearchParams();
@@ -179,5 +179,17 @@ export default function LoginPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="flex justify-center p-8">
+        <Loader2 className="size-6 animate-spin text-cyan-600" />
+      </div>
+    }>
+      <LoginForm />
+    </React.Suspense>
   );
 }
