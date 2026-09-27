@@ -16,14 +16,14 @@ terraform {
     }
   }
 
-  # Backend configuration placeholder (for remote state in S3 + DynamoDB)
-  # backend "s3" {
-  #   bucket         = "clinical-cloud-tfstate-us-east-2"
-  #   key            = "dev/terraform.tfstate"
-  #   region         = "us-east-2"
-  #   dynamodb_table = "clinical-cloud-tflocks"
-  #   encrypt        = true
-  # }
+  # Remote state backend in Amazon S3 with DynamoDB distributed locking
+  backend "s3" {
+    bucket         = "clinical-cloud-tfstate-us-east-2"
+    key            = "dev/terraform.tfstate"
+    region         = "us-east-2"
+    dynamodb_table = "clinical-cloud-tflocks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
