@@ -41,7 +41,7 @@ function SheetContent({
       <div className="fixed inset-0 z-50 pointer-events-none flex justify-end">
         <DialogPrimitive.Popup
           className={cn(
-            "pointer-events-auto relative h-full w-full max-w-md bg-card border-l border-border shadow-2xl transition-all duration-300 flex flex-col focus:outline-none",
+            "pointer-events-auto relative h-full w-full max-w-md bg-card border-l border-border shadow-2xl transition-all duration-300 flex flex-col focus:outline-none overflow-y-auto",
             side === "right" &&
               "right-0 data-ending-style:translate-x-full data-starting-style:translate-x-full",
             side === "left" &&
@@ -51,7 +51,7 @@ function SheetContent({
           {...props}
         >
           {children}
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+          <DialogPrimitive.Close className="absolute right-3.5 top-3.5 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring size-9 flex items-center justify-center">
             <X className="size-4" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>

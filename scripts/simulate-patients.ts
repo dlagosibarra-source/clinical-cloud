@@ -57,8 +57,9 @@ async function runTurn(
 }
 
 async function cleanupScenarioData(phone: string) {
-  // Clear conversation memory
-  ConversationMemoryService.clearHistory(phone);
+  // Clear conversation memory from PostgreSQL
+  const orgId = process.env.DEFAULT_ORG_ID || '00000000-0000-4000-a000-000000000001';
+  await ConversationMemoryService.clearHistory(orgId, phone);
 
   // Clean appointments and patients created by this phone
   const cleanPhone = phone.replace(/\D/g, "");

@@ -175,7 +175,7 @@ export function ServiceDialog({
             </div>
 
             {/* Duración y Precio */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                   <Clock className="size-3.5 text-cyan-600" />
@@ -220,7 +220,7 @@ export function ServiceDialog({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all resize-none"
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all resize-none"
               />
             </div>
 
@@ -327,8 +327,8 @@ export function ServiceDialog({
               <label className="text-xs font-semibold text-foreground">
                 Estado en Tarifario
               </label>
-              <div className="flex items-center gap-3 pt-1">
-                <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 pt-1">
+                <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer min-h-[36px] py-1 select-none">
                   <input
                     type="radio"
                     name="status"
@@ -339,7 +339,7 @@ export function ServiceDialog({
                   />
                   <span>Activo (Visible en cotizaciones y agenda)</span>
                 </label>
-                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer min-h-[36px] py-1 select-none">
                   <input
                     type="radio"
                     name="status"
@@ -354,19 +354,20 @@ export function ServiceDialog({
             </div>
           </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-2 flex-col-reverse sm:flex-row gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
+              className="w-full sm:w-auto h-10"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-cyan-600 hover:bg-cyan-500 text-white gap-2"
+              className="w-full sm:w-auto h-10 bg-cyan-600 hover:bg-cyan-500 text-white gap-2"
             >
               {loading ? (
                 <>

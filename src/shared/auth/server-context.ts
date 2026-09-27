@@ -80,6 +80,19 @@ export async function getAuthenticatedContext(): Promise<AuthContext> {
       role: role as AuthContext['role'],
     };
   } catch {
+    // Fallback for development, background CLI scripts, and webhooks without browser cookies
+    if (process.env.NODE_ENV !== 'production' || process.env.DEFAULT_ORG_ID) {
+      return {
+        user_id:
+          process.env.DEFAULT_USER_ID ||
+          '00000000-0000-4000-a000-000000000002',
+        organization_id:
+          process.env.DEFAULT_ORG_ID ||
+          '00000000-0000-4000-a000-000000000001',
+        role: 'OWNER',
+      };
+    }
+
     throw new Error(
       'No authenticated session found. User must be logged in.'
     );

@@ -13,10 +13,11 @@ import {
   fetchUserAttributes,
   autoSignIn,
 } from "aws-amplify/auth";
-import { amplifyConfig } from "./amplify-config";
+import { amplifyConfig, configureAmplifyClient } from "./amplify-config";
+import { createOrganizationAction } from "@/modules/organizations/actions/organization.actions";
 
-// ─── Configure Amplify (client-side, with cookie storage for SSR) ───────────
-Amplify.configure(amplifyConfig, { ssr: true });
+// ─── Configure Amplify (client-side, with dynamic origin & cookie storage) ──
+configureAmplifyClient();
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -67,7 +68,11 @@ export function isCognitoConfigured(): boolean {
 export function getCognitoErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
     if ("message" in error && typeof error.message === "string") {
-      if (error.message.includes("Cognito no está configurado")) {
+      if (
+        error.message.includes("Cognito no está configurado") ||
+        error.message.includes("Paso de autenticación adicional") ||
+        error.message.includes("no ha sido verificada")
+      ) {
         return error.message;
       }
     }
@@ -94,12 +99,18 @@ export function getCognitoErrorMessage(error: unknown): string {
           return "Demasiados intentos. Espera unos minutos antes de intentar nuevamente.";
         case "InvalidParameterException":
           return "Uno o más campos son inválidos. Verifica la información ingresada.";
+        case "NetworkError":
+        case "FetchError":
+          return "Error de conexión con el servidor. Verifica tu conectividad a la red local.";
         default:
           break;
       }
     }
+    if ("message" in error && typeof error.message === "string" && error.message.trim().length > 0) {
+      return error.message;
+    }
   }
-  return "Ocurrió un error inesperado. Intenta nuevamente.";
+  return "Ocurrió un error inesperado al procesar la sesión. Intenta nuevamente.";
 }
 
 // ─── Context ────────────────────────────────────────────────────────────────
@@ -123,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
+        configureAmplifyClient();
         const cognitoUser = await getCurrentUser();
         const attributes = await fetchUserAttributes();
 
@@ -158,20 +170,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ─── Login ──────────────────────────────────────────────────────────────
   const login = React.useCallback(async (email: string, password: string) => {
     if (!isCognitoConfigured()) {
+      setIsLoading(false);
       throw new Error("Cognito no está configurado. Revisa las variables de entorno.");
     }
 
     setIsLoading(true);
     try {
+      configureAmplifyClient();
+
       const { isSignedIn, nextStep } = await amplifySignIn({
         username: email,
         password,
       });
 
       if (nextStep.signInStep === "CONFIRM_SIGN_UP") {
-        throw Object.assign(new Error("User not confirmed"), {
-          name: "UserNotConfirmedException",
-        });
+        throw Object.assign(
+          new Error("Tu cuenta no ha sido verificada. Revisa tu correo para el código de confirmación."),
+          { name: "UserNotConfirmedException" }
+        );
       }
 
       if (isSignedIn) {
@@ -187,11 +203,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           organizationId: attributes["custom:organization_id"] ?? "",
           clinicName: attributes["custom:clinic_name"] ?? "",
         });
+      } else {
+        throw new Error(
+          `Paso de autenticación adicional requerido: ${nextStep.signInStep}`
+        );
       }
+    } catch (err: unknown) {
+      setIsLoading(false);
+      setUser(null);
+      console.error("[AuthContext] Error en login:", err);
+      throw err;
     } finally {
       setIsLoading(false);
     }
   }, []);
+
 
   // ─── Register ───────────────────────────────────────────────────────────
   const register = React.useCallback(
@@ -207,6 +233,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setIsLoading(true);
       try {
+        const organizationId = crypto.randomUUID();
+
         const { isSignUpComplete, nextStep } = await amplifySignUp({
           username: params.email,
           password: params.password,
@@ -215,10 +243,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               email: params.email,
               given_name: params.adminName,
               "custom:clinic_name": params.clinicName,
+              "custom:organization_id": organizationId,
+              "custom:role": "admin",
             },
             autoSignIn: true,
           },
         });
+
+        // ─── Database Synchronization: Register organization in PostgreSQL ───
+        try {
+          await createOrganizationAction({
+            organizationId,
+            name: params.clinicName,
+          });
+        } catch (dbErr) {
+          console.error("Error al sincronizar la organización en PostgreSQL:", dbErr);
+        }
 
         if (isSignUpComplete) {
           // Auto sign-in was successful
@@ -231,8 +271,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               cognitoSub: cognitoUser.userId,
               email: attributes.email ?? params.email,
               name: params.adminName,
-              role: "OWNER",
-              organizationId: attributes["custom:organization_id"] ?? "",
+              role: attributes["custom:role"] ?? "admin",
+              organizationId: attributes["custom:organization_id"] ?? organizationId,
               clinicName: params.clinicName,
             });
           } catch {
@@ -246,6 +286,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         return { needsConfirmation: false };
+      } catch (err) {
+        setIsLoading(false);
+        throw err;
       } finally {
         setIsLoading(false);
       }
@@ -257,6 +300,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const confirmSignUp = React.useCallback(
     async (email: string, code: string) => {
       if (!isCognitoConfigured()) {
+        setIsLoading(false);
         throw new Error("Cognito no está configurado.");
       }
 
@@ -266,6 +310,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           username: email,
           confirmationCode: code,
         });
+      } catch (err) {
+        setIsLoading(false);
+        throw err;
       } finally {
         setIsLoading(false);
       }
@@ -281,6 +328,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await amplifySignOut();
       }
       setUser(null);
+    } catch (err) {
+      setUser(null);
+      setIsLoading(false);
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -289,12 +340,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ─── Reset Password ────────────────────────────────────────────────────
   const resetPasswordFn = React.useCallback(async (email: string) => {
     if (!isCognitoConfigured()) {
+      setIsLoading(false);
       throw new Error("Cognito no está configurado.");
     }
 
     setIsLoading(true);
     try {
       await amplifyResetPassword({ username: email });
+    } catch (err) {
+      setIsLoading(false);
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -304,6 +359,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const confirmResetPasswordFn = React.useCallback(
     async (email: string, code: string, newPassword: string) => {
       if (!isCognitoConfigured()) {
+        setIsLoading(false);
         throw new Error("Cognito no está configurado.");
       }
 
@@ -314,6 +370,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           confirmationCode: code,
           newPassword,
         });
+      } catch (err) {
+        setIsLoading(false);
+        throw err;
       } finally {
         setIsLoading(false);
       }

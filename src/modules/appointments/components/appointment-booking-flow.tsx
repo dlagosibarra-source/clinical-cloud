@@ -333,18 +333,18 @@ export function AppointmentBookingFlow({
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header section */}
-      <div className="mb-8">
+      <div>
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-600 text-white shadow-sm">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-600 text-white shadow-sm shrink-0">
             <CalendarDays className="size-5" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground">
               Agendamiento de Citas
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               Configura y reserva turnos clínicos con validación de disponibilidad en tiempo real.
             </p>
           </div>
@@ -352,11 +352,11 @@ export function AppointmentBookingFlow({
       </div>
 
       {/* 2-Column Responsive Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Columna 1: Panel Principal de Configuración (8 cols) */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-8 space-y-6">
           {/* Paso 1: Paciente */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">
                 Paso 1 de 3
@@ -371,7 +371,7 @@ export function AppointmentBookingFlow({
           </div>
 
           {/* Paso 2: Sucursal, Odontólogo y Servicio */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">
                 Paso 2 de 3
@@ -392,7 +392,7 @@ export function AppointmentBookingFlow({
           </div>
 
           {/* Paso 3: Fecha y Slots Horarios */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">
                 Paso 3 de 3

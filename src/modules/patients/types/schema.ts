@@ -7,6 +7,7 @@ import {
   boolean,
   index,
   unique,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { organizations } from '../../organizations/types/schema';
 
@@ -29,6 +30,7 @@ export const patients = pgTable('patients', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   unique('uq_patients_org_patient').on(table.organizationId, table.patientId),
+  uniqueIndex('uq_patients_org_email').on(table.organizationId, table.email),
   index('idx_patients_org_id').on(table.organizationId),
   index('idx_patients_org_phone').on(table.organizationId, table.phone),
   index('idx_patients_org_name').on(table.organizationId, table.lastName, table.firstName),

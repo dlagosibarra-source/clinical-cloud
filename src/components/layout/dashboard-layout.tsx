@@ -98,8 +98,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground">
       {/* Mobile Topbar */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-40">
-        <Link href="/agenda" className="flex items-center gap-2.5">
+      <header className="md:hidden flex items-center justify-between px-4 py-2.5 h-14 border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-40">
+        <Link href="/agenda" className="flex items-center gap-2.5 min-h-[40px]">
           <div className="flex size-8 items-center justify-center rounded-xl bg-cyan-600 text-white shadow-xs">
             <Stethoscope className="size-4" />
           </div>
@@ -114,8 +114,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           variant="ghost"
           size="sm"
           onClick={() => setMobileOpen((prev) => !prev)}
-          className="size-9 p-0 rounded-lg text-muted-foreground hover:text-foreground"
-          aria-label="Abrir menú"
+          className="size-10 p-0 rounded-xl text-muted-foreground hover:text-foreground inline-flex items-center justify-center"
+          aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
         >
           {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </Button>
@@ -124,7 +124,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -132,7 +132,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar (Desktop + Mobile slide-over) */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card flex flex-col transition-transform duration-300 md:static md:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] md:w-64 border-r border-border bg-card flex flex-col transition-transform duration-300 md:static md:translate-x-0",
           mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         )}
       >
@@ -161,7 +161,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            className="md:hidden p-1 text-muted-foreground hover:text-foreground rounded-lg"
+            className="md:hidden size-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl transition-colors"
+            aria-label="Cerrar menú lateral"
           >
             <X className="size-4" />
           </button>
@@ -184,7 +185,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group",
+                  "flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group min-h-[44px]",
                   isActive
                     ? "bg-cyan-50/80 text-cyan-950 font-semibold dark:bg-cyan-950/40 dark:text-cyan-100 shadow-2xs"
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -216,7 +217,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               Próximos Módulos
             </p>
 
-            <div className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-muted-foreground/60 cursor-not-allowed">
+            <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-muted-foreground/60 cursor-not-allowed min-h-[44px]">
               <div className="flex items-center gap-2.5">
                 <div className="flex size-7 items-center justify-center rounded-lg bg-muted/40 text-muted-foreground/50">
                   <Activity className="size-4" />
@@ -283,20 +284,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 await logout();
                 router.replace("/login");
               }}
-              className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors shrink-0"
+              className="size-9 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors shrink-0"
               title="Cerrar sesión"
               aria-label="Cerrar sesión"
             >
-              <LogOut className="size-3.5" />
+              <LogOut className="size-4" />
             </button>
           </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {children}
-      </div>
+      </main>
     </div>
   );
 }

@@ -119,7 +119,7 @@ export function NewPatientDialog({
           )}
 
           {/* Nombre y Apellido */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground/80">
                 Nombre <span className="text-destructive">*</span>
@@ -146,7 +146,7 @@ export function NewPatientDialog({
           </div>
 
           {/* Teléfono y Correo */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground/80 flex items-center gap-1">
                 <Phone className="size-3 text-cyan-600" />
@@ -175,7 +175,7 @@ export function NewPatientDialog({
           </div>
 
           {/* Fecha de Nacimiento y Género */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground/80 flex items-center gap-1">
                 <Calendar className="size-3 text-cyan-600" />
@@ -195,7 +195,7 @@ export function NewPatientDialog({
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full h-8 px-2.5 text-xs font-medium rounded-lg border border-border bg-card text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full h-10 px-3 text-sm font-medium rounded-lg border border-border bg-card text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
                 <option value="F">Femenino</option>
                 <option value="M">Masculino</option>
@@ -205,7 +205,7 @@ export function NewPatientDialog({
           </div>
 
           {/* Autorización de WhatsApp */}
-          <div className="flex items-center gap-2 pt-2 border-t border-border/60">
+          <div className="flex items-center gap-2 pt-2 border-t border-border/60 min-h-[36px]">
             <input
               type="checkbox"
               id="new-patient-whatsapp-optin"
@@ -215,23 +215,28 @@ export function NewPatientDialog({
             />
             <label
               htmlFor="new-patient-whatsapp-optin"
-              className="text-xs text-foreground cursor-pointer flex items-center gap-1.5"
+              className="text-xs text-foreground cursor-pointer flex items-center gap-1.5 py-1 select-none"
             >
               <MessageSquare className="size-3.5 text-emerald-600" />
               <span>Autorizar notificaciones y recordatorios por WhatsApp</span>
             </label>
           </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-2 flex-col-reverse sm:flex-row gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
+              className="w-full sm:w-auto h-10"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading} className="gap-2 bg-cyan-600 hover:bg-cyan-500 text-white">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full sm:w-auto h-10 gap-2 bg-cyan-600 hover:bg-cyan-500 text-white"
+            >
               {loading ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />

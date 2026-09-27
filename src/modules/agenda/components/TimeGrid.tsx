@@ -114,7 +114,7 @@ export function TimeGrid({
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-col w-full rounded-2xl border border-border bg-card shadow-xs select-none max-h-[calc(100vh-210px)] min-h-[620px] overflow-y-auto overflow-x-auto"
+      className="relative flex flex-col w-full rounded-2xl border border-border bg-card shadow-xs select-none max-h-[calc(100vh-210px)] min-h-[620px] overflow-y-auto overflow-x-auto touch-pan-x touch-pan-y"
     >
       {/* 1. Header with Doctor Lanes */}
       <div className="flex border-b border-border/80 bg-card/95 sticky top-0 z-30 backdrop-blur-md min-w-full w-max sm:w-full">

@@ -15,5 +15,16 @@ export { dentists } from '../../modules/dentists/types/schema';
 export { locations } from '../../modules/locations/types/schema';
 export { resources } from '../../modules/resources/types/schema';
 export { services } from '../../modules/services/types/schema';
-export { appointments } from '../../modules/appointments/types/schema';
+export { appointments, appointmentEvents } from '../../modules/appointments/types/schema';
 export { dentistAvailability, availabilityBlocks } from '../../modules/availability/types/schema';
+export { waitlist, recoveryOffers } from '../../modules/recovery/types/schema';
+export {
+  whatsappIntegrations,
+  whatsappConversations,
+  whatsappMessages,
+  whatsappTemplates,
+} from '../../modules/whatsapp/types/schema';
+export {
+  aiInteractions,
+  aiConversationContext,
+} from '../../modules/ai/types/schema';

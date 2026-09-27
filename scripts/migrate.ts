@@ -57,6 +57,13 @@ async function main() {
         END IF;
       END $$
     `;
+
+    // Composite unique index: patients email per organization
+    await sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_patients_org_email 
+      ON patients (organization_id, email) 
+      WHERE email IS NOT NULL;
+    `;
     console.log('Custom constraints applied successfully.');
 
     console.log('All migrations complete.');

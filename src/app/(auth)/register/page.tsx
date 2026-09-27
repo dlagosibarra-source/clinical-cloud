@@ -13,6 +13,7 @@ import { useAuth, getCognitoErrorMessage } from "@/shared/auth/context";
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const [clinicName, setClinicName] = React.useState("");
   const [adminName, setAdminName] = React.useState("");
@@ -20,6 +21,8 @@ export default function RegisterPage() {
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  const isBusy = isLoading || isSubmitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +48,7 @@ export default function RegisterPage() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const { needsConfirmation } = await register({
         email,
@@ -60,6 +64,8 @@ export default function RegisterPage() {
       }
     } catch (err) {
       setError(getCognitoErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -151,7 +157,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors size-9 flex items-center justify-center rounded"
                 aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
               >
                 {showPassword ? (
@@ -171,9 +177,9 @@ export default function RegisterPage() {
           <Button
             type="submit"
             className="w-full h-10 bg-cyan-600 hover:bg-cyan-700 text-white font-medium shadow-sm transition-all"
-            disabled={isLoading}
+            disabled={isBusy}
           >
-            {isLoading ? (
+            {isBusy ? (
               <>
                 <Loader2 className="size-4 animate-spin mr-2" />
                 <span>Creando cuenta clínica...</span>

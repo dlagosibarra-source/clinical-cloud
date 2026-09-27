@@ -25,6 +25,9 @@ export default function LoginPage() {
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const isBusy = isLoading || isSubmitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +43,7 @@ export default function LoginPage() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       await login(email, password);
       router.push("/agenda");
@@ -49,6 +53,8 @@ export default function LoginPage() {
         return;
       }
       setError(getCognitoErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -129,7 +135,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors size-9 flex items-center justify-center rounded"
                 aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
               >
                 {showPassword ? (
@@ -146,9 +152,9 @@ export default function LoginPage() {
           <Button
             type="submit"
             className="w-full h-10 bg-cyan-600 hover:bg-cyan-700 text-white font-medium shadow-sm transition-all"
-            disabled={isLoading}
+            disabled={isBusy}
           >
-            {isLoading ? (
+            {isBusy ? (
               <>
                 <Loader2 className="size-4 animate-spin mr-2" />
                 <span>Iniciando sesión...</span>

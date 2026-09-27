@@ -32,6 +32,7 @@ export class PatientsRepository {
           )
         )
       )
+      .orderBy(desc(patients.createdAt))
       .limit(1);
     return result[0] ?? null;
   }

@@ -19,6 +19,14 @@ function safeRevalidatePath(path: string) {
 
 export async function createPatientAction(input: unknown) {
   const context = await getAuthenticatedContext();
+  if (!context?.organization_id) {
+    return {
+      success: false,
+      status: 401,
+      error: "No se encontró una organización activa para el usuario autenticado",
+    };
+  }
+
   const validated = CreatePatientSchema.safeParse(input);
   if (!validated.success) {
     const fieldErrors = validated.error.flatten().fieldErrors;
@@ -43,6 +51,28 @@ export async function createPatientAction(input: unknown) {
     return { success: true, status: 201, data: patient };
   } catch (error) {
     console.error("Error creating patient:", error);
+    const errObj = error as { message?: string; cause?: { message?: string; detail?: string; constraint_name?: string; code?: string } };
+    const errDetails = [
+      errObj?.message,
+      errObj?.cause?.message,
+      errObj?.cause?.detail,
+      errObj?.cause?.constraint_name,
+      errObj?.cause?.code,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    if (
+      errDetails.includes("uq_patients_org_email") ||
+      errDetails.includes("23505") ||
+      errDetails.toLowerCase().includes("unique constraint")
+    ) {
+      return {
+        success: false,
+        status: 409,
+        error: "Ya existe un paciente con este correo electrónico en tu clínica.",
+      };
+    }
     return {
       success: false,
       status: 500,
@@ -108,7 +138,7 @@ export async function searchPatientsAction(input: unknown) {
     const { query, page, limit } = validated.data;
     const patients = await patientService.searchPatients(context, query || "", page, limit);
     return { success: true, status: 200, data: patients };
-  } catch (error) {
+  } catch {
     return { success: false, status: 500, error: "Failed to search patients" };
   }
 }
@@ -121,7 +151,7 @@ export async function getPatientHistoryAction(patientId: string) {
     
     const history = await patientService.getPatientHistory(context, patientId);
     return { success: true, status: 200, data: history };
-  } catch (error) {
+  } catch {
     return { success: false, status: 500, error: "Failed to fetch history" };
   }
 }

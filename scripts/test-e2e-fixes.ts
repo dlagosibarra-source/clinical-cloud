@@ -186,9 +186,10 @@ async function runE2EFixesTests() {
   console.log("✅ TEST 5 PASSED: Temporal anchor, dependent minors, response obligation, and safety directives validated.");
 
   // Clean up test records
+  await db.delete(schema.appointmentEvents).where(eq(schema.appointmentEvents.appointmentId, bookRes.appointmentId));
   await db.delete(schema.appointments).where(eq(schema.appointments.appointmentId, bookRes.appointmentId));
   await db.delete(schema.patients).where(eq(schema.patients.patientId, dbApt.patientId));
-  console.log("Cleaned up test appointment and patient records.");
+  console.log("Cleaned up test appointment events, appointment and patient records.");
 
   console.log("\n==================================================================");
   console.log("  ALL E2E FIXES TESTS PASSED WITH 100% SUCCESS! ");

@@ -33,16 +33,16 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogBackdrop />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
         <DialogPrimitive.Popup
           className={cn(
-            "relative w-full max-w-lg rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xl transition-all duration-200 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0",
+            "relative w-[95vw] sm:w-full sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-4 sm:p-6 text-card-foreground shadow-xl transition-all duration-200 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0",
             className
           )}
           {...props}
         >
           {children}
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+          <DialogPrimitive.Close className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring size-9 flex items-center justify-center">
             <X className="size-4" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>

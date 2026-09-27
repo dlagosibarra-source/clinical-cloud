@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import type { PatientListItem, PatientsPagination } from "../types";
+import type { PatientOption } from "../../appointments/components/types";
 import { Input } from "../../../components/ui/input";
 import { Button, buttonVariants } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
@@ -9,7 +10,6 @@ import { NewPatientDialog } from "../../appointments/components/new-patient-dial
 import {
   Search,
   Plus,
-  User,
   Phone,
   Mail,
   Calendar,
@@ -19,6 +19,7 @@ import {
   CalendarPlus,
   MessageSquare,
   Users,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "cn";
@@ -26,6 +27,7 @@ import { cn } from "cn";
 interface PatientsDataGridProps {
   initialPatients: PatientListItem[];
   initialPagination?: PatientsPagination;
+  isLoading?: boolean;
   onSearch?: (query: string, page: number) => Promise<{
     data: PatientListItem[];
     pagination: PatientsPagination;
@@ -35,16 +37,38 @@ interface PatientsDataGridProps {
 export function PatientsDataGrid({
   initialPatients,
   initialPagination = { page: 1, limit: 10, total: initialPatients.length, totalPages: 1 },
+  isLoading = false,
   onSearch,
 }: PatientsDataGridProps) {
   const [query, setQuery] = React.useState("");
+  const [prevInitialPatients, setPrevInitialPatients] = React.useState(initialPatients);
   const [patients, setPatients] = React.useState<PatientListItem[]>(initialPatients);
+  const [prevInitialPagination, setPrevInitialPagination] = React.useState(initialPagination);
   const [pagination, setPagination] = React.useState<PatientsPagination>(initialPagination);
   const [isSearching, setIsSearching] = React.useState(false);
   const [isNewPatientOpen, setIsNewPatientOpen] = React.useState(false);
+  const isInitialMount = React.useRef(true);
+
+  if (initialPatients !== prevInitialPatients) {
+    setPrevInitialPatients(initialPatients);
+    setPatients(initialPatients);
+  }
+
+  if (initialPagination !== prevInitialPagination) {
+    setPrevInitialPagination(initialPagination);
+    setPagination(initialPagination);
+  }
+
+  const loading = isLoading || isSearching;
 
   // Search handler with debounce
   React.useEffect(() => {
+    // Skip initial mount to avoid duplicate fetch of already server-rendered initialPatients
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const timer = setTimeout(async () => {
       if (onSearch) {
         setIsSearching(true);
@@ -89,9 +113,9 @@ export function PatientsDataGrid({
     }
   };
 
-  const handlePatientCreated = (newPatient: any) => {
+  const handlePatientCreated = (newPatient: PatientOption) => {
     const newItem: PatientListItem = {
-      patientId: newPatient.patientId || newPatient.id,
+      patientId: newPatient.patientId || newPatient.id || "",
       firstName: newPatient.firstName,
       lastName: newPatient.lastName,
       phone: newPatient.phone || null,
@@ -123,22 +147,26 @@ export function PatientsDataGrid({
       {/* Top Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card border border-border/80 rounded-2xl p-4 shadow-xs">
         {/* Search Bar */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <div className="relative flex-1 max-w-md w-full">
+          {loading ? (
+            <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-cyan-600 animate-spin" />
+          ) : (
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          )}
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por nombre, teléfono o correo..."
-            className="pl-9 h-10 text-xs rounded-xl bg-muted/20 border-border/80 focus:bg-card"
+            className="pl-9 h-10 text-xs rounded-xl bg-muted/20 border-border/80 focus:bg-card w-full"
           />
         </div>
 
         {/* Action Button: + Nuevo Paciente */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             type="button"
             onClick={() => setIsNewPatientOpen(true)}
-            className="h-10 px-4 text-xs font-semibold rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs gap-1.5"
+            className="w-full sm:w-auto h-10 px-4 text-xs font-semibold rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs gap-1.5"
           >
             <Plus className="size-4" />
             Nuevo Paciente
@@ -148,6 +176,7 @@ export function PatientsDataGrid({
 
       {/* Patients Data Table / Card Grid */}
       <div className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden">
+        <div className="overflow-x-auto w-full touch-pan-x">
         {/* Table Header */}
         <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3.5 border-b border-border/80 bg-muted/30 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           <div className="col-span-4">Paciente</div>
@@ -159,7 +188,45 @@ export function PatientsDataGrid({
 
         {/* Rows */}
         <div className="divide-y divide-border/60">
-          {patients.length > 0 ? (
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={`patient-skeleton-${i}`}
+                className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 px-4 sm:px-6 py-4 items-center animate-pulse"
+              >
+                {/* 1. Patient Info Skeleton */}
+                <div className="col-span-1 md:col-span-4 flex items-center gap-3 min-w-0">
+                  <div className="size-9 rounded-full bg-muted/80 shrink-0" />
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="h-3.5 w-32 rounded bg-muted/80" />
+                    <div className="h-2.5 w-20 rounded bg-muted/50" />
+                  </div>
+                </div>
+
+                {/* 2. Contact Info Skeleton */}
+                <div className="col-span-1 md:col-span-3 space-y-1.5">
+                  <div className="h-3 w-28 rounded bg-muted/70" />
+                  <div className="h-2.5 w-36 rounded bg-muted/50" />
+                </div>
+
+                {/* 3. Last Appointment Skeleton */}
+                <div className="col-span-1 md:col-span-2">
+                  <div className="h-3 w-24 rounded bg-muted/70" />
+                </div>
+
+                {/* 4. Total Appointments Skeleton */}
+                <div className="col-span-1 flex md:justify-center items-center">
+                  <div className="h-5 w-7 rounded-full bg-muted/60" />
+                </div>
+
+                {/* 5. Actions Skeleton */}
+                <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-1.5 pt-2 md:pt-0">
+                  <div className="h-8 w-14 rounded-lg bg-muted/60" />
+                  <div className="h-8 w-20 rounded-lg bg-cyan-600/20" />
+                </div>
+              </div>
+            ))
+          ) : patients.length > 0 ? (
             patients.map((patient) => (
               <div
                 key={patient.patientId}
@@ -238,12 +305,12 @@ export function PatientsDataGrid({
                 </div>
 
                 {/* 5. Actions */}
-                <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-1.5 pt-2 md:pt-0 border-t md:border-t-0 border-border/40">
+                <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-border/40">
                   <Link
                     href={`/pacientes/${patient.patientId}`}
                     className={cn(
                       buttonVariants({ variant: "ghost", size: "sm" }),
-                      "h-8 px-2 text-xs text-muted-foreground hover:text-foreground inline-flex items-center justify-center"
+                      "h-9 px-3 text-xs text-muted-foreground hover:text-foreground inline-flex items-center justify-center min-h-[36px]"
                     )}
                   >
                     <ExternalLink className="size-3.5 mr-1" />
@@ -254,7 +321,7 @@ export function PatientsDataGrid({
                     href={`/citas/nueva?patientId=${patient.patientId}`}
                     className={cn(
                       buttonVariants({ size: "sm" }),
-                      "h-8 px-2.5 text-xs bg-cyan-600 hover:bg-cyan-500 text-white gap-1 rounded-lg inline-flex items-center justify-center"
+                      "h-9 px-3 text-xs bg-cyan-600 hover:bg-cyan-500 text-white gap-1 rounded-lg inline-flex items-center justify-center min-h-[36px]"
                     )}
                   >
                     <CalendarPlus className="size-3.5" />
@@ -279,7 +346,7 @@ export function PatientsDataGrid({
               <Button
                 size="sm"
                 onClick={() => setIsNewPatientOpen(true)}
-                className="mt-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs h-8"
+                className="mt-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs h-9 min-h-[36px] px-3.5"
               >
                 <Plus className="size-3.5 mr-1" />
                 Registrar Paciente
@@ -287,21 +354,22 @@ export function PatientsDataGrid({
             </div>
           )}
         </div>
+        </div>
 
         {/* Table Footer with Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="px-6 py-3 border-t border-border/80 bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="px-4 sm:px-6 py-3 border-t border-border/80 bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted-foreground">
             <span>
               Total: <strong className="text-foreground">{pagination.total}</strong> pacientes
             </span>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-center sm:self-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page <= 1 || isSearching}
-                className="size-8 p-0"
+                disabled={pagination.page <= 1 || loading}
+                className="size-9 p-0 inline-flex items-center justify-center"
               >
                 <ChevronLeft className="size-4" />
               </Button>
@@ -313,8 +381,8 @@ export function PatientsDataGrid({
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page >= pagination.totalPages || isSearching}
-                className="size-8 p-0"
+                disabled={pagination.page >= pagination.totalPages || loading}
+                className="size-9 p-0 inline-flex items-center justify-center"
               >
                 <ChevronRight className="size-4" />
               </Button>

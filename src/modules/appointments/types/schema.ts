@@ -9,6 +9,8 @@ import {
   index,
   check,
   foreignKey,
+  unique,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { organizations } from '../../organizations/types/schema';
@@ -85,6 +87,8 @@ export const appointments = pgTable('appointments', {
     columns: [table.organizationId, table.createdByUserId],
     foreignColumns: [users.organizationId, users.userId],
   }),
+  // Cross-org composite unique constraint for referencing by events/waitlist
+  unique('uq_appointments_org_appointment').on(table.organizationId, table.appointmentId),
   // Check constraints
   check('ck_appointments_end_after_start', sql`${table.endAt} > ${table.startAt}`),
   // Indexes
@@ -93,3 +97,42 @@ export const appointments = pgTable('appointments', {
   index('idx_appointments_org_patient').on(table.organizationId, table.patientId),
   index('idx_appointments_org_start').on(table.organizationId, table.startAt),
 ]);
+
+/**
+ * Appointment Events table (Append-only).
+ *
+ * Immutable event trail recording all lifecycle milestones and state transitions:
+ * CREATED, CONFIRMED, CANCELLED, RESCHEDULED, COMPLETED, NO_SHOW,
+ * RECOVERY_TRIGGERED, RECOVERY_OFFERED, RECOVERY_ACCEPTED, RECOVERY_DECLINED.
+ *
+ * Essential foundation for the Recovery Engine and clinical auditability.
+ */
+export const appointmentEvents = pgTable('appointment_events', {
+  eventId: uuid('event_id').primaryKey().defaultRandom(),
+  organizationId: uuid('organization_id')
+    .notNull()
+    .references(() => organizations.organizationId),
+  appointmentId: uuid('appointment_id')
+    .notNull()
+    .references(() => appointments.appointmentId),
+  eventType: varchar('event_type', { length: 50 }).notNull(),
+  actorType: varchar('actor_type', { length: 50 }).notNull().default('USER'),
+  actorUserId: uuid('actor_user_id'),
+  source: varchar('source', { length: 50 }).notNull().default('WEB'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'fk_appointment_events_org_appointment',
+    columns: [table.organizationId, table.appointmentId],
+    foreignColumns: [appointments.organizationId, appointments.appointmentId],
+  }),
+  index('idx_appointment_events_org_id').on(table.organizationId),
+  index('idx_appointment_events_org_appointment').on(table.organizationId, table.appointmentId),
+  index('idx_appointment_events_org_type').on(table.organizationId, table.eventType),
+  index('idx_appointment_events_created_at').on(table.organizationId, table.createdAt),
+]);
+
+export type AppointmentEvent = typeof appointmentEvents.$inferSelect;
+export type NewAppointmentEvent = typeof appointmentEvents.$inferInsert;
+

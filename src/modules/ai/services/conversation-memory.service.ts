@@ -1,112 +1,102 @@
 import type { ClinicalChatMessage } from "./ai.service";
-import fs from "fs";
-import path from "path";
-
-export interface StoredTurn {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-}
-
-// Memory file cache path for development persistence across fast-refreshes
-const CACHE_FILE = path.join(process.cwd(), ".conversation_memory_cache.json");
+import { db } from "../../../shared/database";
+import { WhatsAppRepository } from "../../whatsapp/repositories/whatsapp.repository";
 
 /**
- * In-memory map indexed by cleaned phone number (wa_id)
- */
-const memoryStore = new Map<string, StoredTurn[]>();
-
-// Initialize from file cache if available
-try {
-  if (fs.existsSync(CACHE_FILE)) {
-    const raw = fs.readFileSync(CACHE_FILE, "utf-8");
-    const parsed = JSON.parse(raw);
-    for (const [key, val] of Object.entries(parsed)) {
-      if (Array.isArray(val)) {
-        memoryStore.set(key, val);
-      }
-    }
-  }
-} catch {
-  // Ignore cache read errors
-}
-
-function persistCache() {
-  try {
-    const obj: Record<string, StoredTurn[]> = {};
-    for (const [key, val] of memoryStore.entries()) {
-      obj[key] = val;
-    }
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(obj, null, 2), "utf-8");
-  } catch {
-    // Ignore cache write errors
-  }
-}
-
-/**
- * Service to manage multi-turn chat history indexed by wa_id (phone number)
+ * Service to manage multi-turn chat history backed by PostgreSQL
+ * (whatsapp_conversations and whatsapp_messages tables).
  */
 export class ConversationMemoryService {
+  private static repository = new WhatsAppRepository(db);
+
   /**
-   * Retrieves the last N turns for the given user's WhatsApp ID
+   * Retrieves the last N turns for the given user's WhatsApp ID from PostgreSQL.
    *
+   * @param organizationId Clinic organization ID
    * @param waId Recipient's phone number or wa_id
    * @param limit Maximum number of turns (defaults to 10)
    */
-  static getHistory(waId: string, limit = 10): ClinicalChatMessage[] {
+  static async getHistory(
+    organizationId: string,
+    waId: string,
+    limit = 10
+  ): Promise<ClinicalChatMessage[]> {
     const cleanId = waId.replace(/\D/g, "");
-    const turns = memoryStore.get(cleanId) || [];
+    const messages = await this.repository.getRecentMessagesByPhone(
+      organizationId,
+      cleanId,
+      limit
+    );
 
-    // Return the last `limit` messages
-    return turns.slice(-limit).map((t) => ({
-      role: t.role,
-      content: t.content,
+    return messages.map((m) => ({
+      role: m.direction === "INBOUND" ? "user" : "assistant",
+      content: m.body || "",
     }));
   }
 
   /**
-   * Appends a new user or assistant turn to the conversation history
+   * Appends a new user or assistant turn to the conversation in PostgreSQL.
    *
+   * @param organizationId Clinic organization ID
    * @param waId Recipient's phone number or wa_id
    * @param role 'user' or 'assistant'
    * @param content Text content of the message
+   * @param options Additional metadata, patientId, providerMessageId
    */
-  static appendTurn(
+  static async appendTurn(
+    organizationId: string,
     waId: string,
     role: "user" | "assistant",
-    content: string
-  ): void {
+    content: string,
+    options?: {
+      patientId?: string | null;
+      providerMessageId?: string;
+      metadata?: Record<string, unknown>;
+    }
+  ): Promise<void> {
     const cleanId = waId.replace(/\D/g, "");
     const trimmed = content.trim();
     if (!trimmed) return;
 
-    const existing = memoryStore.get(cleanId) || [];
-    existing.push({
-      role,
-      content: trimmed,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Retain only the last 20 total turns to prevent context bloat
-    if (existing.length > 20) {
-      existing.splice(0, existing.length - 20);
+    // Idempotency: avoid duplicate insertion if providerMessageId is already recorded
+    if (options?.providerMessageId) {
+      const alreadyPersisted = await this.repository.isMessageProcessed(
+        organizationId,
+        options.providerMessageId
+      );
+      if (alreadyPersisted) {
+        return;
+      }
     }
 
-    memoryStore.set(cleanId, existing);
-    persistCache();
+    // Find or create active conversation
+    const conversation = await this.repository.findOrCreateConversation(
+      organizationId,
+      cleanId,
+      options?.patientId
+    );
+
+    // Persist message
+    await this.repository.createMessage(organizationId, {
+      conversationId: conversation.conversationId,
+      patientId: options?.patientId ?? conversation.patientId,
+      direction: role === "user" ? "INBOUND" : "OUTBOUND",
+      type: "TEXT",
+      body: trimmed,
+      status: role === "user" ? "RECEIVED" : "SENT",
+      providerMessageId: options?.providerMessageId,
+      metadata: options?.metadata || {},
+    });
 
     console.log(
-      `[Conversation Memory] 💾 Turno guardado para ${cleanId} [${role}] (Total historial: ${existing.length})`
+      `[Conversation Memory] 💾 Turno persistido en PostgreSQL para ${cleanId} [${role}]`
     );
   }
 
   /**
-   * Clears the conversation history for a given wa_id
+   * Cleans up conversation and messages for the phone number (used in testing/simulations).
    */
-  static clearHistory(waId: string): void {
-    const cleanId = waId.replace(/\D/g, "");
-    memoryStore.delete(cleanId);
-    persistCache();
-    console.log(`[Conversation Memory] 🧹 Historial limpiado para ${cleanId}`);
+  static async clearHistory(organizationId: string, waId: string): Promise<void> {
+    await this.repository.clearHistoryByPhone(organizationId, waId);
   }
 }

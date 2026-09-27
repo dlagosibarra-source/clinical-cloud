@@ -19,32 +19,7 @@ interface PatientSearchComboboxProps {
 export function PatientSearchCombobox({
   selectedPatient,
   onSelectPatient,
-  initialPatients = [
-    {
-      id: "00000000-0000-4000-a000-000000000007",
-      patientId: "00000000-0000-4000-a000-000000000007",
-      firstName: "Ana",
-      lastName: "García",
-      phone: "+52 55 1234 5678",
-      email: "ana.garcia@example.com",
-    },
-    {
-      id: "00000000-0000-4000-a000-000000000017",
-      patientId: "00000000-0000-4000-a000-000000000017",
-      firstName: "Carlos",
-      lastName: "Mendoza",
-      phone: "+52 55 8765 4321",
-      email: "carlos.m@example.com",
-    },
-    {
-      id: "00000000-0000-4000-a000-000000000027",
-      patientId: "00000000-0000-4000-a000-000000000027",
-      firstName: "Elena",
-      lastName: "Torres",
-      phone: "+52 55 9988 7766",
-      email: "elena.t@example.com",
-    },
-  ],
+  initialPatients = [],
 }: PatientSearchComboboxProps) {
   const [query, setQuery] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);

@@ -44,6 +44,7 @@ async function main() {
 
             // Delete dependencies in transaction to handle FK constraints correctly
             await db.transaction(async (tx) => {
+                await tx.delete(schema.appointmentEvents).where(eq(schema.appointmentEvents.organizationId, orgId));
                 await tx.delete(schema.appointments).where(eq(schema.appointments.organizationId, orgId));
                 await tx.delete(schema.dentistAvailability).where(eq(schema.dentistAvailability.organizationId, orgId));
                 await tx.delete(schema.availabilityBlocks).where(eq(schema.availabilityBlocks.organizationId, orgId));

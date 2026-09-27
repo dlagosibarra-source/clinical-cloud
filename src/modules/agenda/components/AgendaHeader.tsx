@@ -85,74 +85,79 @@ export function AgendaHeader({
       {/* 1. Main Header Row: Title + Date Navigation + CTA */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Title & Date Navigation */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-600 text-white shadow-xs">
-              <CalendarDays className="size-5" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-600 text-white shadow-xs">
+              <CalendarDays className="size-4 sm:size-5" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground capitalize">
+              <h1 className="text-sm sm:text-base md:text-xl font-bold tracking-tight text-foreground capitalize leading-snug">
                 {formattedDateTitle}
               </h1>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
                 Agenda clínica de turnos y disponibilidad en tiempo real
               </p>
             </div>
           </div>
 
           {/* Date controls: Hoy, <, >, datepicker */}
-          <div className="flex items-center gap-1.5 ml-0 sm:ml-4 bg-card border border-border/80 rounded-xl p-1 shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-card border border-border/80 rounded-xl p-1 shadow-2xs w-full sm:w-auto justify-between sm:justify-start">
             <Button
               variant={isToday ? "secondary" : "ghost"}
               size="sm"
               onClick={handleToday}
-              className="h-8 text-xs font-semibold px-2.5 rounded-lg"
+              className="h-9 text-xs font-semibold px-3 rounded-lg"
             >
               Hoy
             </Button>
 
             <div className="h-4 w-px bg-border/80 mx-0.5" />
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handlePrevDay}
-              className="size-8 p-0 rounded-lg text-muted-foreground hover:text-foreground"
-              title="Día anterior"
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePrevDay}
+                className="size-9 p-0 rounded-lg text-muted-foreground hover:text-foreground inline-flex items-center justify-center"
+                title="Día anterior"
+                aria-label="Día anterior"
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNextDay}
-              className="size-8 p-0 rounded-lg text-muted-foreground hover:text-foreground"
-              title="Día siguiente"
-            >
-              <ChevronRight className="size-4" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNextDay}
+                className="size-9 p-0 rounded-lg text-muted-foreground hover:text-foreground inline-flex items-center justify-center"
+                title="Día siguiente"
+                aria-label="Día siguiente"
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
 
             <div className="relative flex items-center ml-1">
               <input
                 type="date"
                 value={selectedDate}
+                suppressHydrationWarning={true}
                 onChange={(e) => e.target.value && onDateChange(e.target.value)}
-                className="h-8 px-2 text-xs font-medium rounded-lg border border-border bg-muted/40 text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="h-9 px-2 text-xs font-medium rounded-lg border border-border bg-muted/40 text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
             </div>
           </div>
         </div>
 
         {/* Right side: View mode toggle + New Appointment button */}
-        <div className="flex items-center gap-2.5 self-start lg:self-center">
+        <div className="flex items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end">
           {/* Day / Week View Mode Toggle */}
           <div className="flex items-center rounded-xl border border-border/80 bg-muted/30 p-1 shadow-2xs">
             <button
               type="button"
               onClick={() => onViewModeChange("day")}
               className={cn(
-                "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                "px-3.5 py-1.5 min-h-[36px] text-xs font-semibold rounded-lg transition-all",
                 viewMode === "day"
                   ? "bg-card text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -164,7 +169,7 @@ export function AgendaHeader({
               type="button"
               onClick={() => onViewModeChange("week")}
               className={cn(
-                "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                "px-3.5 py-1.5 min-h-[36px] text-xs font-semibold rounded-lg transition-all",
                 viewMode === "week"
                   ? "bg-card text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -178,7 +183,7 @@ export function AgendaHeader({
           {onNewAppointment ? (
             <Button
               onClick={onNewAppointment}
-              className="h-9 px-3.5 text-xs font-semibold rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs gap-1.5"
+              className="h-10 px-4 text-xs font-semibold rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs gap-1.5"
             >
               <Plus className="size-4" />
               Nueva Cita
@@ -186,7 +191,7 @@ export function AgendaHeader({
           ) : (
             <Link
               href="/citas/nueva"
-              className="inline-flex items-center justify-center h-9 px-3.5 text-xs font-semibold rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs gap-1.5 transition-colors"
+              className="inline-flex items-center justify-center h-10 px-4 text-xs font-semibold rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs gap-1.5 transition-colors"
             >
               <Plus className="size-4" />
               Nueva Cita
@@ -196,7 +201,7 @@ export function AgendaHeader({
       </div>
 
       {/* 2. Secondary Filter Row: Location Selector + Dentist Multi-select Pills */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border/60">
         {/* Dentist Multi-select Chips */}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mr-1 flex items-center gap-1">
@@ -208,7 +213,7 @@ export function AgendaHeader({
             type="button"
             onClick={onSelectAllDentists}
             className={cn(
-              "px-2.5 py-1 rounded-lg text-xs font-medium border transition-all",
+              "px-3 py-1.5 min-h-[36px] rounded-lg text-xs font-medium border transition-all",
               allDentistsSelected
                 ? "bg-cyan-600 text-white border-cyan-600 shadow-2xs"
                 : "bg-card text-muted-foreground border-border hover:border-border/80 hover:text-foreground"
@@ -225,7 +230,7 @@ export function AgendaHeader({
                 type="button"
                 onClick={() => onToggleDentist(dentist.dentistId)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all",
+                  "flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg text-xs font-medium border transition-all",
                   isSelected
                     ? "bg-cyan-50 text-cyan-900 border-cyan-500/50 dark:bg-cyan-950/40 dark:text-cyan-200 dark:border-cyan-500/40 shadow-2xs"
                     : "bg-card text-muted-foreground border-border hover:border-border/80 hover:text-foreground"
@@ -242,15 +247,15 @@ export function AgendaHeader({
         </div>
 
         {/* Location Selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1 shrink-0">
             <MapPin className="size-3.5 text-cyan-600" />
             Sucursal:
           </span>
           <select
             value={selectedLocationId}
             onChange={(e) => onLocationChange(e.target.value)}
-            className="h-8 px-2.5 text-xs font-medium rounded-lg border border-border bg-card text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            className="h-9 flex-1 sm:flex-none px-3 text-xs font-medium rounded-lg border border-border bg-card text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
           >
             <option value="ALL">Todas las sucursales</option>
             {locations.map((loc) => (

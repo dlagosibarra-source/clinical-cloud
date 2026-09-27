@@ -1,6 +1,5 @@
 import { PatientProfile } from "@/modules/patients/components/PatientProfile";
 import { getPatientDetailsAction } from "@/modules/patients/actions/patient.actions";
-import { MOCK_PATIENT_PROFILES } from "@/modules/patients/mock-data";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -13,7 +12,7 @@ export async function generateMetadata({
 }: PatientProfilePageProps): Promise<Metadata> {
   const { id } = await params;
   const res = await getPatientDetailsAction(id);
-  const patient = res.success && res.data ? res.data : MOCK_PATIENT_PROFILES[id];
+  const patient = res.success && res.data ? res.data : null;
 
   if (patient) {
     return {
@@ -35,31 +34,13 @@ export default async function PatientProfilePage({
 
   const res = await getPatientDetailsAction(id);
 
-  const patient =
-    res.success && res.data
-      ? res.data
-      : MOCK_PATIENT_PROFILES[id] || {
-          patientId: id,
-          firstName: "Paciente",
-          lastName: "Demo",
-          phone: "+52 55 0000 0000",
-          email: "paciente@demo.clinicalcloud.dev",
-          dateOfBirth: "1990-01-01",
-          gender: "F",
-          whatsappOptIn: true,
-          status: "ACTIVE",
-          createdAt: new Date().toISOString(),
-          stats: {
-            totalAppointments: 0,
-            completedAppointments: 0,
-            cancelledAppointments: 0,
-          },
-          history: [],
-        };
+  if (!res.success || !res.data) {
+    notFound();
+  }
 
   return (
     <main className="min-h-screen bg-background">
-      <PatientProfile initialPatient={patient} />
+      <PatientProfile initialPatient={res.data} />
     </main>
   );
 }

@@ -250,7 +250,7 @@ export function AgendaView({
   }, [appointments, selectedLocationId]);
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
+    <div className="w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-4">
       {/* Toast notification */}
       {statusFeedback && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-card border border-border p-3.5 shadow-lg text-xs animate-in slide-in-from-bottom-5 duration-200">

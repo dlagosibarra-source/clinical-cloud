@@ -141,7 +141,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors size-9 flex items-center justify-center rounded"
                   aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
                 >
                   {showPassword ? (
@@ -176,7 +176,7 @@ export default function ForgotPasswordPage() {
             <button
               type="button"
               onClick={() => { setStep('request'); setError(null); }}
-              className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors min-h-[36px] py-1"
             >
               <ArrowLeft className="size-3.5" />
               <span>Probar con otro correo</span>

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleInboundWhatsAppMessage } from "../../../../modules/ai/orchestrator/whatsapp-ai-orchestrator";
+import { InboundWhatsAppService } from "../../../../modules/whatsapp/services/inbound-whatsapp.service";
+import { db } from "../../../../shared/database";
+import { whatsappIntegrations } from "../../../../modules/whatsapp/types/schema";
+import { eq } from "drizzle-orm";
 import {
   sendWhatsAppMessage,
   getWhatsAppMediaInfo,
@@ -119,6 +122,20 @@ export async function POST(request: NextRequest) {
         const value = change.value;
         if (!value) continue;
 
+        // Resolve organizationId from phone_number_id if registered
+        const phoneNumberId = value.metadata?.phone_number_id;
+        let organizationId: string | undefined;
+        if (phoneNumberId) {
+          const intg = await db
+            .select({ organizationId: whatsappIntegrations.organizationId })
+            .from(whatsappIntegrations)
+            .where(eq(whatsappIntegrations.phoneNumberId, phoneNumberId))
+            .limit(1);
+          if (intg[0]) {
+            organizationId = intg[0].organizationId;
+          }
+        }
+
         // 1. Filter out message status notifications (sent, delivered, read) to avoid loops
         if (value.statuses && value.statuses.length > 0) {
           for (const status of value.statuses) {
@@ -213,15 +230,18 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          // Execute orchestrator with effectiveText (from text message or transcribed voice note)
+          // Execute InboundWhatsAppService (handles deduplication, recovery acceptance, and AI forwarding)
+          const inboundService = new InboundWhatsAppService();
           await Promise.race([
-            handleInboundWhatsAppMessage({
+            inboundService.processIncomingMessage({
               rawFrom: cleanFrom,
               userText: effectiveText,
               contactName,
               messageId,
+              messageType,
+              organizationId,
             }),
-            new Promise((resolve) => setTimeout(resolve, 12000)),
+            new Promise((resolve) => setTimeout(resolve, 15000)),
           ]);
         }
       }

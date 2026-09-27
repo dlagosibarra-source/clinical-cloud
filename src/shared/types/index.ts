@@ -138,3 +138,29 @@ export interface AuthContext {
   organization_id: string;
   role: UserRole;
 }
+
+// ─── Waitlist ───────────────────────────────────────────────
+
+export const WaitlistStatus = {
+  WAITING: 'WAITING',
+  OFFERED: 'OFFERED',
+  ACCEPTED: 'ACCEPTED',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+  FULFILLED: 'FULFILLED',
+} as const;
+
+export type WaitlistStatus = (typeof WaitlistStatus)[keyof typeof WaitlistStatus];
+
+// ─── Recovery Offer ─────────────────────────────────────────
+
+export const RecoveryOfferStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DECLINED: 'DECLINED',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export type RecoveryOfferStatus =
+  (typeof RecoveryOfferStatus)[keyof typeof RecoveryOfferStatus];

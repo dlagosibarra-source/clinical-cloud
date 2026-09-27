@@ -1,6 +1,5 @@
 import { PatientsDataGrid } from "@/modules/patients/components/PatientsDataGrid";
 import { getPatientsListAction } from "@/modules/patients/actions/patient.actions";
-import { MOCK_PATIENTS_LIST } from "@/modules/patients/mock-data";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -18,14 +17,10 @@ export default async function PacientesPage({ searchParams }: PacientesPageProps
 
   const res = await getPatientsListAction(q || "", pageNum, 20);
 
-  // Fallback to mock data if no database records yet for demo preview
-  const patients =
-    res.success && res.data && res.data.length > 0
-      ? res.data
-      : MOCK_PATIENTS_LIST;
+  const patients = res.success && res.data ? res.data : [];
 
   const pagination = res.pagination || {
-    page: 1,
+    page: pageNum,
     limit: 20,
     total: patients.length,
     totalPages: Math.ceil(patients.length / 20) || 1,
@@ -33,7 +28,7 @@ export default async function PacientesPage({ searchParams }: PacientesPageProps
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

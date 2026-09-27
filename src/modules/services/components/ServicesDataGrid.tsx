@@ -131,7 +131,7 @@ export function ServicesDataGrid({ initialServices = [] }: ServicesDataGridProps
   const activeCount = services.filter((s) => s.status === "ACTIVE").length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Toast */}
       {feedback && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-card border border-border p-3.5 shadow-lg text-xs animate-in slide-in-from-bottom-5 duration-200">
@@ -159,10 +159,10 @@ export function ServicesDataGrid({ initialServices = [] }: ServicesDataGridProps
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto">
           <Button
             onClick={handleOpenCreate}
-            className="gap-2 bg-cyan-600 hover:bg-cyan-500 text-white shadow-sm"
+            className="w-full sm:w-auto h-10 gap-2 bg-cyan-600 hover:bg-cyan-500 text-white shadow-sm"
           >
             <Plus className="size-4" />
             <span>Nuevo Tratamiento</span>
@@ -199,24 +199,24 @@ export function ServicesDataGrid({ initialServices = [] }: ServicesDataGridProps
 
       {/* Toolbar: Search and Filter */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl border border-border bg-card shadow-2xs">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-md w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nombre o descripción..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-xs"
+            className="pl-9 h-10 text-xs w-full"
           />
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          <Filter className="size-3.5 text-muted-foreground" />
-          <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5">
+        <div className="flex items-center gap-2 self-start sm:self-auto overflow-x-auto w-full sm:w-auto">
+          <Filter className="size-3.5 text-muted-foreground shrink-0" />
+          <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5 shrink-0">
             <button
               type="button"
               onClick={() => setStatusFilter("ALL")}
               className={cn(
-                "px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
+                "px-3 py-1.5 min-h-[36px] text-xs font-medium rounded-md transition-colors",
                 statusFilter === "ALL"
                   ? "bg-card text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -228,7 +228,7 @@ export function ServicesDataGrid({ initialServices = [] }: ServicesDataGridProps
               type="button"
               onClick={() => setStatusFilter("ACTIVE")}
               className={cn(
-                "px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
+                "px-3 py-1.5 min-h-[36px] text-xs font-medium rounded-md transition-colors",
                 statusFilter === "ACTIVE"
                   ? "bg-card text-emerald-600 shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -240,7 +240,7 @@ export function ServicesDataGrid({ initialServices = [] }: ServicesDataGridProps
               type="button"
               onClick={() => setStatusFilter("INACTIVE")}
               className={cn(
-                "px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
+                "px-3 py-1.5 min-h-[36px] text-xs font-medium rounded-md transition-colors",
                 statusFilter === "INACTIVE"
                   ? "bg-card text-muted-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -254,8 +254,8 @@ export function ServicesDataGrid({ initialServices = [] }: ServicesDataGridProps
 
       {/* Table Data Grid */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-2xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full touch-pan-x">
+          <table className="w-full min-w-[640px] text-left text-xs">
             <thead className="bg-muted/40 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="py-3.5 px-4 sm:px-6">Tratamiento</th>
@@ -361,7 +361,7 @@ export function ServicesDataGrid({ initialServices = [] }: ServicesDataGridProps
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenEdit(svc)}
-                            className="size-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+                            className="size-9 p-0 text-muted-foreground hover:text-foreground hover:bg-muted"
                             title="Editar tratamiento"
                           >
                             <Edit2 className="size-3.5" />
@@ -372,7 +372,7 @@ export function ServicesDataGrid({ initialServices = [] }: ServicesDataGridProps
                             size="sm"
                             onClick={() => handleToggleStatus(svc)}
                             className={cn(
-                              "size-8 p-0 transition-colors",
+                              "size-9 p-0 transition-colors",
                               isActive
                                 ? "text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20"
                                 : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"

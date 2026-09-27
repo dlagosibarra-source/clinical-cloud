@@ -281,7 +281,12 @@ function safeRevalidatePath(path: string) {
 
 export async function updateAppointmentStatusAction(
     appointmentId: string,
-    status: AppointmentStatus
+    status: AppointmentStatus,
+    options?: {
+        reason?: string;
+        source?: 'WEB' | 'MOBILE' | 'WHATSAPP' | 'API' | 'SYSTEM' | 'ADMIN';
+        metadata?: Record<string, unknown>;
+    }
 ) {
     const context = await getAuthenticatedContext();
     const appointmentService = new AppointmentService(db);
@@ -290,7 +295,13 @@ export async function updateAppointmentStatusAction(
         const result = await appointmentService.updateAppointmentStatus(
             context,
             appointmentId,
-            status
+            status,
+            {
+                actorType: 'USER',
+                source: options?.source || 'WEB',
+                reason: options?.reason,
+                metadata: options?.metadata,
+            }
         );
         const updated = result[0];
         if (!updated) {
@@ -325,6 +336,30 @@ export async function updateAppointmentStatusAction(
                 error instanceof Error
                     ? error.message
                     : "Error al actualizar estado de la cita",
+        };
+    }
+}
+
+export async function getAppointmentEventsAction(appointmentId: string) {
+    const context = await getAuthenticatedContext();
+    const appointmentService = new AppointmentService(db);
+    try {
+        const events = await appointmentService.getAppointmentEvents(context, appointmentId);
+        return {
+            success: true,
+            status: 200,
+            data: events,
+        };
+    } catch (error: unknown) {
+        console.error("Error fetching appointment events:", error);
+        return {
+            success: false,
+            status: 500,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : "Error al obtener eventos de la cita",
+            data: [],
         };
     }
 }
